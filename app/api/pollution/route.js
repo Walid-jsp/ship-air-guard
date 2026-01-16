@@ -2,15 +2,19 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // SIMULATION DU CAPTEUR VACAO+ (Espace Confiné)
-    // On génère des valeurs aléatoires pour que tu puisses voir la ventilation changer en rafraîchissant la page.
+    // --- SIMULATION REALISTE ---
     
-    // Niveau CO2 (Normal ~400-800, Danger > 1000)
-    const co2 = Math.floor(Math.random() * (2000 - 400) + 400); 
-    // Niveau VOC (Substances Chimiques)
-    const voc = Math.floor(Math.random() * (500 - 10) + 10);
-    // Température
-    const temp = Math.floor(Math.random() * (45 - 20) + 20);
+    // Pour éviter que ça soit toujours rouge, on génère des chiffres plus bas.
+    
+    // CO2 : Entre 400 et 1100 (Le danger est à 1000). 
+    // Donc la plupart du temps ce sera < 1000 (Vert).
+    const co2 = Math.floor(Math.random() * (1100 - 400) + 400); 
+
+    // VOC : Entre 10 et 300 (Le danger est à 250).
+    const voc = Math.floor(Math.random() * (300 - 10) + 10);
+
+    // Température : Entre 20°C et 42°C (Le danger est à 40°C).
+    const temp = Math.floor(Math.random() * (42 - 20) + 20);
 
     const sensorData = [
       { 
