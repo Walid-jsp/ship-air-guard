@@ -106,24 +106,6 @@ export default function PricingPage() {
         <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* NAVBAR */}
-      <nav className="relative z-50 border-b border-slate-700/50 bg-slate-900/30 backdrop-blur-md sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
-            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg shadow-lg">
-              <Ship className="text-white" size={28} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">SHIP AIR GUARD</h1>
-              <p className="text-xs text-slate-400 font-medium">Tarification</p>
-            </div>
-          </Link>
-          <Link href="/" className="px-6 py-2 rounded-lg border border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-            Retour
-          </Link>
-        </div>
-      </nav>
-
       {/* HERO SECTION */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-16">
         <div className="text-center space-y-6 mb-16">

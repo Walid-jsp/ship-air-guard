@@ -20,23 +20,14 @@ interface PollutionData {
 }
 
 export default function Home() {
-  const [showDashboard, setShowDashboard] = useState(false);
   const [data, setData] = useState<PollutionData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [alertLevel, setAlertLevel] = useState("Normal");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get('/api/pollution');
         setData(response.data);
-        
-        // Calcul simple du niveau d'alerte global
-        const maxVal = Math.max(...response.data.map((d: any) => d.valeur));
-        if (maxVal > 300) setAlertLevel("CRITIQUE");
-        else if (maxVal > 50) setAlertLevel("ATTENTION");
-        else setAlertLevel("NORMAL");
-
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -46,9 +37,9 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Configuration graphique Barres
+  // Configuration graphique Barres (inutilisé maintenant mais gardé pour compatibilité)
   const barChartData = {
-    labels: data.map(d => d.nom_station.replace("Marseille ", "")), // On raccourcit les noms
+    labels: data.map(d => d.nom_station.replace("Marseille ", "")),
     datasets: [{
       label: 'Niveau de Pollution',
       data: data.map(d => d.valeur),
@@ -56,147 +47,6 @@ export default function Home() {
       borderRadius: 5,
     }],
   };
-
-  // Si on veut afficher le dashboard, sinon affiche la page d'accueil
-  if (showDashboard) {
-    return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-[#0f172a] text-slate-100 font-sans">
-      
-      {/* NAVBAR */}
-      <nav className="relative z-50 border-b border-slate-700/50 bg-slate-900/30 backdrop-blur-md sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg shadow-lg">
-              <Ship className="text-white" size={28} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">SHIP AIR GUARD</h1>
-              <p className="text-xs text-slate-400 font-medium">Tableau de Bord</p>
-            </div>
-          </div>
-          <Link href="/" className="px-6 py-2 rounded-lg border border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-            Retour à l'accueil
-          </Link>
-        </div>
-      </nav>
-
-      {/* CONTENU PRINCIPAL */}
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        
-        {loading ? (
-           <div className="flex flex-col items-center justify-center h-64 gap-4">
-             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-             <p className="animate-pulse text-slate-400">Connexion aux capteurs...</p>
-           </div>
-        ) : (
-          <>
-            {/* KPI CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Carte 1 : Résumé */}
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Wind size={100} />
-                </div>
-                <h3 className="text-slate-400 text-sm font-medium mb-1">CAPTEURS ACTIFS</h3>
-                <p className="text-4xl font-bold text-white">{data.length}</p>
-                <div className="mt-4 text-sm text-slate-400 flex items-center gap-1">
-                  <CheckCircle size={14} className="text-green-400"/> Données temps réel
-                </div>
-              </div>
-
-              {/* Carte 2 : Pic de pollution */}
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-                <h3 className="text-slate-400 text-sm font-medium mb-1">PIC DÉTECTÉ (MAX)</h3>
-                {data.length > 0 ? (
-                  <>
-                    <p className={`text-4xl font-bold ${alertLevel === "CRITIQUE" ? "text-red-500" : "text-green-400"}`}>
-                      {Math.max(...data.map(d => d.valeur))} <span className="text-lg text-slate-500">µg/m³</span>
-                    </p>
-                    <p className="text-sm text-slate-400 mt-2">Station la plus exposée</p>
-                  </>
-                ) : <p>-</p>}
-              </div>
-
-              {/* Carte 3 : Action Requise */}
-              <div className={`border rounded-2xl p-6 shadow-xl ${alertLevel === "CRITIQUE" ? "bg-red-900/20 border-red-500" : "bg-slate-800 border-slate-700"}`}>
-                <h3 className={`${alertLevel === "CRITIQUE" ? "text-red-400" : "text-slate-400"} text-sm font-medium mb-1`}>ACTION REQUISE</h3>
-                <div className="flex items-center gap-3 mt-2">
-                  {alertLevel === "CRITIQUE" ? (
-                    <>
-                      <AlertOctagon size={40} className="text-red-500" />
-                      <div>
-                        <p className="font-bold text-white">Évacuation / Masque</p>
-                        <p className="text-xs text-red-300">Seuil de danger dépassé</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={40} className="text-green-500" />
-                      <div>
-                        <p className="font-bold text-white">Aucune action</p>
-                        <p className="text-xs text-slate-400">Qualité de l'air acceptable</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* GRAPHIQUE ET LISTE */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[500px]">
-              
-              {/* Colonne Gauche : Graphique principal */}
-              <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col">
-                <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                  <Activity className="text-blue-500"/> Analyse des polluants
-                </h2>
-                <div className="flex-1 min-h-0">
-                  <Bar 
-                    data={barChartData} 
-                    options={{ 
-                      responsive: true, 
-                      maintainAspectRatio: false,
-                      plugins: { legend: { display: false } },
-                      scales: {
-                        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                      }
-                    }} 
-                  />
-                </div>
-              </div>
-
-              {/* Colonne Droite : Liste détaillée */}
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg overflow-hidden flex flex-col">
-                <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                  <Droplets className="text-blue-500"/> Détails par Zone
-                </h2>
-                <div className="overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                  {data.map((item, idx) => (
-                    <div key={idx} className="p-3 bg-slate-700/50 rounded-lg flex justify-between items-center hover:bg-slate-700 transition-colors">
-                      <div>
-                        <p className="font-medium text-sm text-white">{item.nom_station}</p>
-                        <p className="text-xs text-slate-400">{item.nom_polluant}</p>
-                      </div>
-                      <div className={`text-right ${item.valeur > 100 ? "text-red-400" : "text-blue-300"}`}>
-                        <p className="font-bold font-mono text-lg">{item.valeur}</p>
-                        <p className="text-[10px] text-slate-500">{item.unite}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </>
-        )}
-      </div>
-    </main>
-    </>
-    );
-  }
 
   // PAGE D'ACCUEIL MODERNE
   return (
@@ -210,32 +60,6 @@ export default function Home() {
         <div className="absolute top-40 right-10 w-72 h-72 bg-cyan-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
       </div>
-
-      {/* NAVBAR */}
-      <nav className="relative z-50 border-b border-slate-700/50 bg-slate-900/30 backdrop-blur-md sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg shadow-lg">
-              <Ship className="text-white" size={28} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">SHIP AIR GUARD</h1>
-              <p className="text-xs text-slate-400 font-medium">Surveillance Qualité de l'Air</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/pricing" className="px-6 py-2 rounded-lg border border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-              Tarification
-            </Link>
-            <button 
-              onClick={() => setShowDashboard(true)}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105"
-            >
-              Tableau de Bord
-            </button>
-          </div>
-        </div>
-      </nav>
 
       {/* HERO SECTION */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
@@ -253,12 +77,9 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button 
-                onClick={() => setShowDashboard(true)}
-                className="px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105"
-              >
+              <Link href="/dashboard" className="px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 text-center">
                 Accéder au Tableau de Bord
-              </button>
+              </Link>
               <button className="px-8 py-4 rounded-lg border-2 border-slate-600 text-white font-bold text-lg hover:border-blue-500 hover:shadow-lg transition-all duration-300">
                 En Savoir Plus
               </button>
@@ -367,12 +188,14 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-3xl p-12 text-center">
           <h3 className="text-4xl font-bold mb-6">Prêt à Protéger Votre Équipage ?</h3>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">Rejoignez des milliers de navires qui font confiance à Ship Air Guard pour surveiller la qualité de l'air en temps réel.</p>
-          <button 
-            onClick={() => setShowDashboard(true)}
-            className="px-10 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105"
-          >
-            Commencer Maintenant
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/dashboard" className="px-10 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 text-center">
+              Commencer Maintenant
+            </Link>
+            <Link href="/" className="px-10 py-4 rounded-lg border-2 border-slate-600 text-white font-bold text-lg hover:border-blue-500 transition-all duration-300 text-center">
+              Retour à l'accueil
+            </Link>
+          </div>
         </div>
       </section>
 

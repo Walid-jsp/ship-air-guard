@@ -20,10 +20,9 @@ export default function Navbar() {
   }, []);
 
   const navItems = [
-    { name: 'Accueil', href: '/' },
-    { name: 'Tableau de Bord', href: '/?dashboard=true' },
+    { name: 'Tableau de Bord', href: '/dashboard' },
     { name: 'Tarification', href: '/pricing' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   const isActive = (href: string) => {
