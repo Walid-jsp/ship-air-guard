@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Ship, Menu, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import { Ship, Menu, X, LogOut, User, LogIn, Zap } from 'lucide-react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,9 +23,7 @@ export default function Navbar() {
   }, []);
 
   const navItems = [
-    { name: 'Tableau de Bord', href: '/dashboard' },
-    { name: 'Tarification', href: '/pricing' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Dashboard', href: '/dashboard' },
   ];
 
   const isActive = (href: string) => {
@@ -30,6 +31,30 @@ export default function Navbar() {
       return pathname === '/';
     }
     return pathname.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    await signOut({ redirect: true, redirectUrl: '/login' });
+  };
+
+  const getSubscriptionBadgeColor = (plan: string) => {
+    const colors: Record<string, string> = {
+      free: 'bg-slate-700 text-slate-200',
+      starter: 'bg-blue-600 text-blue-100',
+      pro: 'bg-purple-600 text-purple-100',
+      enterprise: 'bg-amber-600 text-amber-100',
+    };
+    return colors[plan] || colors['free'];
+  };
+
+  const getSubscriptionLabel = (plan: string) => {
+    const labels: Record<string, string> = {
+      free: 'Gratuit',
+      starter: 'Starter',
+      pro: 'Pro',
+      enterprise: 'Enterprise',
+    };
+    return labels[plan] || 'Plan';
   };
 
   return (
@@ -60,25 +85,82 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 relative group ${
-                  isActive(item.href)
-                    ? 'text-blue-400'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                {item.name}
-                <span
-                  className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300 ${
-                    isActive(item.href) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+          {session && (
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 relative group ${
+                    isActive(item.href)
+                      ? 'text-blue-400'
+                      : 'text-slate-300 hover:text-white'
                   }`}
-                />
-              </Link>
-            ))}
+                >
+                  {item.name}
+                  <span
+                    className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300 ${
+                      isActive(item.href) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+                    }`}
+                  />
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Auth Buttons - Desktop */}
+          <div className="hidden md:flex items-center gap-3">
+            {session ? (
+              <>
+                {/* Subscription Plan */}
+                <Link
+                  href="/pricing"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${getSubscriptionBadgeColor(session.user?.subscriptionPlan || 'free')}`}
+                >
+                  <Zap size={16} />
+                  {getSubscriptionLabel(session.user?.subscriptionPlan || 'free')}
+                </Link>
+                <Link
+                  href="/dashboard/profile"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300"
+                >
+                  <User size={20} />
+                  <span className="text-sm font-semibold">{session.user?.name || 'Profil'}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-300"
+                >
+                  <LogOut size={20} />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                {/* S'inscrire Pricing - non connecté */}
+                <Link
+                  href="/pricing"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
+                >
+                  <Zap size={16} />
+                  S'inscrire Pricing
+                </Link>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300 font-semibold"
+                >
+                  <LogIn size={20} />
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-300"
+                >
+                  <User size={20} />
+                  S'inscrire
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,11 +175,11 @@ export default function Navbar() {
         {/* Mobile Navigation */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
-            isOpen ? 'max-h-64 border-t border-slate-700/50' : 'max-h-0'
+            isOpen ? 'max-h-96 border-t border-slate-700/50' : 'max-h-0'
           }`}
         >
           <div className="px-6 py-4 space-y-2 bg-slate-900/60 backdrop-blur-sm">
-            {navItems.map((item) => (
+            {session && navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -111,6 +193,75 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Mobile Auth Buttons */}
+            <div className="pt-4 border-t border-slate-700/50 space-y-2">
+              {session ? (
+                <>
+                  {/* Subscription Plan Mobile */}
+                  <Link
+                    href="/pricing"
+                    className={`block px-4 py-2 rounded-lg text-center text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${getSubscriptionBadgeColor(session.user?.subscriptionPlan || 'free')}`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Zap size={16} />
+                    {getSubscriptionLabel(session.user?.subscriptionPlan || 'free')}
+                  </Link>
+                  <Link
+                    href="/dashboard/profile"
+                    className="block px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-center hover:bg-blue-700 transition-all duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <User size={20} />
+                      Mon Profil
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="w-full px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <LogOut size={20} />
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* S'inscrire Pricing Mobile - non connecté */}
+                  <Link
+                    href="/pricing"
+                    className="block px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 font-semibold text-center hover:bg-slate-700 transition-all duration-300 flex items-center justify-center gap-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Zap size={16} />
+                     Pricing
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="block px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold text-center hover:bg-slate-600 transition-all duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <LogIn size={20} />
+                      Connexion
+                    </div>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-center hover:bg-blue-700 transition-all duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <User size={20} />
+                      S'inscrire
+                    </div>
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </nav>
