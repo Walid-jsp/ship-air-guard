@@ -34,8 +34,9 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await signOut({ redirect: true, redirectUrl: '/login' });
-  };
+  await signOut({ callbackUrl: '/login' });
+};
+
 
   const getSubscriptionBadgeColor = (plan: string) => {
     const colors: Record<string, string> = {
