@@ -1,36 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ship Air Guard
 
-## Getting Started
+Ship Air Guard est une application de surveillance de la qualité de l'air maritime développée avec Next.js 16, NextAuth, Prisma et PostgreSQL.
 
-First, run the development server:
+## 🚀 Installation et Configuration
 
+### 1. Cloner le projet
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/votre-username/ship-air-guard.git
+cd ship-air-guard
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Installer les dépendances
+```bash
+npm install
+# ou
+yarn install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configuration de la base de données
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Option A : PostgreSQL Local
+1. Installer PostgreSQL sur votre machine
+2. Créer une base de données : `ship_air_guard`
+3. Noter les informations de connexion (username, password, port)
 
-## Learn More
+#### Option B : PostgreSQL Cloud (Recommandé)
+Utiliser un service comme :
+- [Supabase](https://supabase.com) (gratuit)
+- [Railway](https://railway.app) 
+- [PlanetScale](https://planetscale.com)
+- [Neon](https://neon.tech)
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Variables d'environnement
+1. Copier le fichier d'exemple :
+```bash
+cp .env.example .env
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Modifier `.env` avec vos vraies valeurs :
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/ship_air_guard"
+NEXTAUTH_SECRET="votre-secret-genere"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+⚠️ **Important** : Générer un secret NextAuth sécurisé :
+```bash
+openssl rand -base64 32
+```
 
-## Deploy on Vercel
+### 5. Migration de la base de données
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 6. Lancer l'application
+```bash
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ouvrir [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+
+## 🔐 Fonctionnalités d'Authentification
+
+- **Inscription** : `/register`  
+- **Connexion** : `/login`
+- **Dashboard protégé** : `/dashboard`
+- **Profil utilisateur** : `/dashboard/profile`
+
+## 📊 Fonctionnalités Principales
+
+- 📈 **Monitoring temps réel** : CO2, VOC, Température
+- 🎯 **Tableaux de bord visuels** avec Chart.js
+- 🔒 **Authentification sécurisée** avec NextAuth
+- 💰 **Système d'abonnements** (Free, Starter, Pro, Enterprise)
+- 📱 **Design responsive** avec TailwindCSS
+
+## 🛠️ Technologies Utilisées
+
+- **Frontend** : Next.js 16, React 19, TailwindCSS
+- **Backend** : Next.js API Routes
+- **Base de données** : PostgreSQL + Prisma ORM
+- **Authentification** : NextAuth.js
+- **Graphiques** : Chart.js + React Chart.js 2
+- **Validation** : Zod
+- **Icons** : Lucide React
+
+## 📁 Structure du Projet
+
+```
+├── app/                   # App Router de Next.js
+│   ├── (auth)/           # Pages d'authentification
+│   ├── api/              # Routes API
+│   ├── components/       # Composants React
+│   ├── dashboard/        # Pages protégées
+│   └── globals.css       # Styles globaux
+├── lib/                  # Utilitaires et configuration
+├── prisma/               # Schéma et migrations DB
+├── actions/              # Server Actions Next.js
+└── types/                # Types TypeScript
+```
+
+## 🚨 Dépannage
+
+### Erreur de connexion à la base de données
+- Vérifier que PostgreSQL est démarré
+- Contrôler la `DATABASE_URL` dans `.env`
+- Exécuter `npx prisma migrate reset` si nécessaire
+
+### Erreur d'authentification
+- Vérifier `NEXTAUTH_SECRET` et `NEXTAUTH_URL`
+- Effacer les cookies du navigateur
+- Redémarrer le serveur de développement
+
+### Erreur Prisma
+```bash
+# Régénérer le client Prisma
+npx prisma generate
+
+# Réinitialiser la DB (ATTENTION : efface les données)
+npx prisma migrate reset
+```
+
+## 📞 Support
+
+Pour toute question ou problème, ouvrir une issue sur GitHub.
+
+---
+
+**Développé avec ❤️ pour la surveillance environnementale maritime**
