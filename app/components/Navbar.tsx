@@ -77,11 +77,10 @@ export default function Navbar() {
             <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg shadow-lg hover:shadow-blue-500/50 transition-shadow duration-300">
               <Ship className="text-white" size={28} />
             </div>
-            <div className="hidden sm:block">
+<div className="hidden sm:block">
               <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                SHIP AIR GUARD
+                Ship Air Guard
               </h1>
-              <p className="text-xs text-slate-400 font-medium">Surveillance Qualité de l'Air</p>
             </div>
           </Link>
 
@@ -138,14 +137,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* S'inscrire Pricing - non connecté */}
-                <Link
-                  href="/pricing"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
-                >
-                  <Zap size={16} />
-                  S'inscrire Pricing
-                </Link>
+
                 <Link
                   href="/login"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300 font-semibold"
@@ -231,15 +223,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  {/* S'inscrire Pricing Mobile - non connecté */}
-                  <Link
-                    href="/pricing"
-                    className="block px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 font-semibold text-center hover:bg-slate-700 transition-all duration-300 flex items-center justify-center gap-2"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Zap size={16} />
-                     Pricing
-                  </Link>
+
                   <Link
                     href="/login"
                     className="block px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold text-center hover:bg-slate-600 transition-all duration-300"
