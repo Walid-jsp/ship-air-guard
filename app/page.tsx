@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Bar, Doughnut } from 'react-chartjs-2';
+
 import { 
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement 
 } from 'chart.js';
@@ -17,11 +18,17 @@ interface PollutionData {
   nom_polluant: string;
   valeur: number;
   unite: string;
+  seuil_danger?: number;
 }
 
 export default function Home() {
   const [data, setData] = useState<PollutionData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const co2Threshold = (() => {
+    const co2 = data.find(d => d?.nom_polluant?.toLowerCase().includes('co2'));
+    return Number.isFinite(co2?.seuil_danger) ? (co2?.seuil_danger as number) : 1000;
+  })();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,8 +99,8 @@ export default function Home() {
                 <p className="text-slate-400 text-sm">Surveillance Temps Réel</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-cyan-400">{data.length > 0 ? data.length : '∞'}</p>
-                <p className="text-slate-400 text-sm">Points de Mesure</p>
+                <p className="text-3xl font-bold text-cyan-400">3</p>
+                <p className="text-slate-400 text-sm">Paramètres Analysés (CO2, VOC, Température)</p>
               </div>
             </div>
           </div>
@@ -107,9 +114,9 @@ export default function Home() {
                 <div className="relative flex flex-col items-center justify-center space-y-4">
                   <Wind className="w-20 h-20 text-cyan-400 animate-bounce" />
                   <p className="text-3xl font-bold text-blue-400">
-                    {data.length > 0 ? Math.max(...data.map(d => d.valeur)) : '--'} µg/m³
+                    {co2Threshold} ppm
                   </p>
-                  <p className="text-slate-400 text-sm">Pollution maximale détectée</p>
+                  <p className="text-slate-400 text-sm">Seuil d'Alerte Configurable</p>
                 </div>
               </div>
             </div>
@@ -122,7 +129,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold mb-4">Fonctionnalités Clés</h3>
-            <p className="text-slate-400 text-lg">Tout ce dont vous avez besoin pour protéger votre environnement</p>
+            <p className="text-slate-400 text-lg">Tout ce dont vous avez besoin pour protéger votre équipage en cale</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,7 +139,7 @@ export default function Home() {
                 <Zap className="w-7 h-7 text-white" />
               </div>
               <h4 className="text-xl font-bold mb-3">Alertes Instantanées</h4>
-              <p className="text-slate-400 leading-relaxed">Recevez des notifications en temps réel lorsque la qualité de l'air dépasse les seuils critiques.</p>
+              <p className="text-slate-400 leading-relaxed">Recevez des notifications en temps réel lorsque l'air en zones confinées (cale moteur, locaux techniques) dépasse les seuils critiques.</p>
             </div>
 
             {/* Feature 2 */}
@@ -140,8 +147,8 @@ export default function Home() {
               <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Globe className="w-7 h-7 text-white" />
               </div>
-              <h4 className="text-xl font-bold mb-3">Couverture Globale</h4>
-              <p className="text-slate-400 leading-relaxed">Surveillez plusieurs zones et stations avec un seul tableau de bord intuitif.</p>
+              <h4 className="text-xl font-bold mb-3">Zones du Navire</h4>
+              <p className="text-slate-400 leading-relaxed">Surveillez plusieurs zones du navire (cales, passerelle, ateliers) avec un seul tableau de bord clair et opérationnel.</p>
             </div>
 
             {/* Feature 3 */}
@@ -150,7 +157,7 @@ export default function Home() {
                 <Shield className="w-7 h-7 text-white" />
               </div>
               <h4 className="text-xl font-bold mb-3">Données Sécurisées</h4>
-              <p className="text-slate-400 leading-relaxed">Vos données sont chiffrées et stockées en toute sécurité dans nos serveurs certifiés.</p>
+              <p className="text-slate-400 leading-relaxed">Vos données capteurs sont protégées et accessibles uniquement à l'équipe autorisée (traçabilité et contrôle d'accès).</p>
             </div>
 
             {/* Feature 4 */}
@@ -159,7 +166,7 @@ export default function Home() {
                 <TrendingUp className="w-7 h-7 text-white" />
               </div>
               <h4 className="text-xl font-bold mb-3">Analyses Détaillées</h4>
-              <p className="text-slate-400 leading-relaxed">Visualisez les tendances et les patterns de pollution avec nos graphiques avancés.</p>
+              <p className="text-slate-400 leading-relaxed">Visualisez l'évolution du CO2, des VOC et de la température pour anticiper les dérives et améliorer la ventilation.</p>
             </div>
 
             {/* Feature 5 */}
@@ -168,7 +175,7 @@ export default function Home() {
                 <Activity className="w-7 h-7 text-white" />
               </div>
               <h4 className="text-xl font-bold mb-3">Santé en Priorité</h4>
-              <p className="text-slate-400 leading-relaxed">Recommandations personnalisées basées sur votre profil de santé et l'air ambiant.</p>
+              <p className="text-slate-400 leading-relaxed">Aidez l'équipage à travailler en sécurité dans les espaces confinés grâce à des seuils clairs et des alertes actionnables.</p>
             </div>
 
             {/* Feature 6 */}
@@ -177,7 +184,7 @@ export default function Home() {
                 <Droplets className="w-7 h-7 text-white" />
               </div>
               <h4 className="text-xl font-bold mb-3">Données Précises</h4>
-              <p className="text-slate-400 leading-relaxed">Capteurs de haute précision certifiés pour une mesure fiable et exacte.</p>
+              <p className="text-slate-400 leading-relaxed">Capteurs adaptés au terrain (milieu maritime) pour une mesure fiable des paramètres critiques à bord.</p>
             </div>
           </div>
         </div>
@@ -189,7 +196,7 @@ export default function Home() {
           <h3 className="text-4xl font-bold mb-6">Prêt à Protéger Votre Équipage ?</h3>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">Rejoignez des milliers de navires qui font confiance à Ship Air Guard pour surveiller la qualité de l'air en temps réel.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/dashboard" className="px-10 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 text-center">
+            <Link href="/login" className="px-10 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 text-center">
               Commencer Maintenant
             </Link>
             <Link href="/" className="px-10 py-4 rounded-lg border-2 border-slate-600 text-white font-bold text-lg hover:border-blue-500 transition-all duration-300 text-center">
