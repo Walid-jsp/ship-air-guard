@@ -24,6 +24,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Monitoring', href: '/monitoring' },
   ];
 
   const isActive = (href: string) => {
