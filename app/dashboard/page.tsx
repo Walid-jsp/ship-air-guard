@@ -69,7 +69,7 @@ function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: 
         <Doughnut 
           data={{
             datasets: [
-              // CORRECTION ICI : Ajout de "as any" pour éviter l'erreur TypeScript sur 'cutout'
+              // CORRECTION ICI : "as any" ajouté pour éviter l'erreur TypeScript lors du build
               { 
                 data: [Math.min(safeValue, redThreshold), Math.max(0, redThreshold - safeValue)], 
                 backgroundColor: [currentColor, 'rgba(255, 255, 255, 0.05)'], 

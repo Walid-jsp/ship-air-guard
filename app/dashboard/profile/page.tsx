@@ -93,7 +93,7 @@ const result = await updateProfile((session?.user as any)?.id as string, formDat
   };
 
   const handleLogout = async () => {
-    await signOut({ redirect: true, redirectUrl: "/login" });
+    await signOut({ redirect: true, callbackUrl: "/login" });
   };
 
   const getFieldError = (field: string) => errors[field]?.[0] || "";
@@ -282,7 +282,7 @@ const result = await updateProfile((session?.user as any)?.id as string, formDat
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">ID Utilisateur:</span>
                           <span className="text-slate-200 font-mono text-xs bg-white/5 px-3 py-1 rounded">
-                            {session?.user?.id}
+                            {(session?.user as any)?.id}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
