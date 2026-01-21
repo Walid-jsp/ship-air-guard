@@ -20,7 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Mot de passe", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, _request) {
         // Validation des credentials
         const parsedCredentials = loginSchema.safeParse(credentials);
 
@@ -51,13 +51,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name,
           image: user.image,
-        };
+          subscriptionPlan: (user as any).subscriptionPlan || "free",
+        } as any;
       },
     }),
   ],
   pages: {
     signIn: "/login",
-    signUp: "/register",
+    newUser: "/register",
   },
   callbacks: {
     async jwt({ token, user }) {
