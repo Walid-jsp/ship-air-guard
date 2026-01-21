@@ -42,12 +42,11 @@ function getSmartValue(current: number, type: 'co2' | 'voc' | 'temp') {
   return current + (target - current) * speed;
 }
 
-// --- COMPOSANT JAUGE ---
 function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: {
   title: string; value: number; unit: string; orangeThreshold: number; redThreshold: number; icon: ReactNode;
 }) {
   const safeValue = value || 0;
-  let currentColor = '#10b981'; 
+  let currentColor = '#10b981'; // Vert
   let statusText = "Sain";
 
   if (safeValue >= redThreshold) { currentColor = '#ef4444'; statusText = "DANGER"; }
@@ -66,28 +65,28 @@ function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: 
         <div className="text-slate-500">{icon}</div>
       </div>
       <div className="relative h-32 w-full flex items-center justify-center">
-<Doughnut 
-  data={{
-    datasets: [
-      { 
-        data: [Math.min(safeValue, redThreshold), Math.max(0, redThreshold - safeValue)], 
-        backgroundColor: [currentColor, 'rgba(255, 255, 255, 0.05)'], 
-        borderWidth: 0 
-      },
-      { 
-        data: [orangeThreshold, redThreshold - orangeThreshold], 
-        backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 159, 11, 0.15)'], 
-        borderWidth: 0 
-      }
-    ]
-  }} 
-options={{ 
-    responsive: true, 
-    maintainAspectRatio: false, 
-    cutout: '85%', // Déplacé ici pour corriger l'erreur TypeScript
-    plugins: { tooltip: { enabled: false } } 
-  }} 
-/>
+        <Doughnut 
+          data={{
+            datasets: [
+              { 
+                data: [Math.min(safeValue, redThreshold), Math.max(0, redThreshold - safeValue)], 
+                backgroundColor: [currentColor, 'rgba(255, 255, 255, 0.05)'], 
+                borderWidth: 0 
+              },
+              { 
+                data: [orangeThreshold, redThreshold - orangeThreshold], 
+                backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 158, 11, 0.15)'], 
+                borderWidth: 0 
+              }
+            ]
+          }} 
+          options={{ 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            cutout: '85%', // On le met ici pour corriger l'erreur de compilation
+            plugins: { tooltip: { enabled: false } } 
+          }} 
+        />
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none mt-1">
           <p className="text-[10px] font-black uppercase" style={{ color: currentColor }}>{statusText}</p>
         </div>
