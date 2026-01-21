@@ -76,7 +76,7 @@ function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: 
       },
       { 
         data: [orangeThreshold, redThreshold - orangeThreshold], 
-        backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 158, 11, 0.15)'], 
+        backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 159, 11, 0.15)'], 
         borderWidth: 0 
       }
     ]
