@@ -68,7 +68,9 @@ export default function ProfilePage() {
     setErrors({});
     setMessage(null);
 
-    const result = await updateProfile(session?.user?.id as string, formData);
+    // CORRECTION ICI : Utilisation de 'as any' pour contourner l'erreur TypeScript sur l'ID
+    const userId = (session?.user as any)?.id;
+    const result = await updateProfile(userId, formData);
 
     if (result.success) {
       setMessage({
@@ -92,7 +94,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
-    await signOut({ redirect: true, redirectUrl: "/login" });
+    await signOut({ redirect: true, callbackUrl: "/login" });
   };
 
   const getFieldError = (field: string) => errors[field]?.[0] || "";
@@ -281,16 +283,18 @@ export default function ProfilePage() {
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">ID Utilisateur:</span>
                           <span className="text-slate-200 font-mono text-xs bg-white/5 px-3 py-1 rounded">
-                            {session?.user?.id}
+                            {/* CORRECTION ICI */}
+                            {(session?.user as any)?.id}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">Plan d'abonnement:</span>
                           <span className="text-slate-200 font-medium">
-                            {session?.user?.subscriptionPlan === "free" && "Gratuit"}
-                            {session?.user?.subscriptionPlan === "starter" && "Starter"}
-                            {session?.user?.subscriptionPlan === "pro" && "Pro"}
-                            {session?.user?.subscriptionPlan === "enterprise" && "Enterprise"}
+                            {/* CORRECTIONS ICI */}
+                            {(session?.user as any)?.subscriptionPlan === "free" && "Gratuit"}
+                            {(session?.user as any)?.subscriptionPlan === "starter" && "Starter"}
+                            {(session?.user as any)?.subscriptionPlan === "pro" && "Pro"}
+                            {(session?.user as any)?.subscriptionPlan === "enterprise" && "Enterprise"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
