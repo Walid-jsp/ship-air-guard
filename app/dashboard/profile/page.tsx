@@ -68,7 +68,8 @@ export default function ProfilePage() {
     setErrors({});
     setMessage(null);
 
-    const result = await updateProfile(session?.user?.id as string, formData);
+ // On ajoute "(session?.user as any)" pour forcer TypeScript à accepter l'ID
+const result = await updateProfile((session?.user as any)?.id as string, formData);
 
     if (result.success) {
       setMessage({

@@ -1,19 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import axios from 'axios';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Doughnut, Line } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler 
 } from 'chart.js';
 import { AlertOctagon, CheckCircle, Activity, ThermometerSun, Gauge, Wind, Utensils, Coffee, DoorOpen, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import ReportPdfButton from '../components/ReportPdfButton';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler);
 
 const STATIONS = ['Cuisine', 'Restaurant', 'Couloir 1'];
-const REFRESH_MS = 5000; // 3 secondes
-const POINTS = 25;
+const REFRESH_MS = 10000; // 10 secondes
+const POINTS = 20;
 
 // --- GÉNÉRATEUR DE VALEURS INDÉPENDANTES (70/15/15) ---
 function getSmartValue(current: number, type: 'co2' | 'voc' | 'temp') {
@@ -69,8 +69,19 @@ function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: 
         <Doughnut 
           data={{
             datasets: [
-              { data: [Math.min(safeValue, redThreshold), Math.max(0, redThreshold - safeValue)], backgroundColor: [currentColor, 'rgba(255, 255, 255, 0.05)'], borderWidth: 0, cutout: '85%' },
-              { data: [orangeThreshold, redThreshold - orangeThreshold], backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 158, 11, 0.15)'], borderWidth: 0, cutout: '92%' }
+              // CORRECTION ICI : Ajout de "as any" pour éviter l'erreur TypeScript sur 'cutout'
+              { 
+                data: [Math.min(safeValue, redThreshold), Math.max(0, redThreshold - safeValue)], 
+                backgroundColor: [currentColor, 'rgba(255, 255, 255, 0.05)'], 
+                borderWidth: 0, 
+                cutout: '85%' 
+              } as any,
+              { 
+                data: [orangeThreshold, redThreshold - orangeThreshold], 
+                backgroundColor: ['rgba(16, 185, 129, 0.1)', 'rgba(245, 158, 11, 0.15)'], 
+                borderWidth: 0, 
+                cutout: '92%' 
+              } as any
             ]
           }} 
           options={{ responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false } } }} 
@@ -93,6 +104,15 @@ export default function Dashboard() {
   const [allStationsData, setAllStationsData] = useState<Record<string, any>>({});
   const [allHistories, setAllHistories] = useState<Record<string, any>>({});
   const [lastUpdate, setLastUpdate] = useState<string>('--:--');
+  const [isPaused, setIsPaused] = useState(false);
+  const [pausedIndex, setPausedIndex] = useState<number | null>(null);
+  const [pausedLabel, setPausedLabel] = useState<string | null>(null);
+  const lineChartRef = useRef<any>(null);
+  const isPausedRef = useRef(false);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
 
   useEffect(() => {
     const initialData: Record<string, any> = {};
@@ -117,11 +137,13 @@ export default function Dashboard() {
     setLoading(false);
 
     const interval = setInterval(() => {
+      if (isPausedRef.current) return;
       const nextTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setAllStationsData(prev => {
         const nextData = { ...prev };
         setAllHistories(prevHist => {
           const nextHist = { ...prevHist };
+
           STATIONS.forEach(name => {
             const newCO2 = getSmartValue(prev[name]?.co2 || 700, 'co2');
             const newVOC = getSmartValue(prev[name]?.voc || 100, 'voc');
@@ -147,15 +169,76 @@ export default function Dashboard() {
   const readings = allStationsData[selectedStation];
   const history = allHistories[selectedStation];
 
+  const displayedReadings = (() => {
+    if (!isPaused || pausedIndex === null) return readings;
+    if (!history || !readings) return readings;
+
+    return {
+      ...readings,
+      co2: history.co2?.[pausedIndex] ?? readings.co2,
+      voc: history.voc?.[pausedIndex] ?? readings.voc,
+      temp: history.temp?.[pausedIndex] ?? readings.temp,
+    };
+  })();
+
+  const snapshotByStation: Record<string, any> = (() => {
+    if (!isPaused || pausedIndex === null) return allStationsData;
+
+    const snap: Record<string, any> = { ...allStationsData };
+    STATIONS.forEach(name => {
+      const base = allStationsData[name];
+      const h = allHistories[name];
+      if (!base || !h) return;
+      snap[name] = {
+        ...base,
+        co2: h.co2?.[pausedIndex] ?? base.co2,
+        voc: h.voc?.[pausedIndex] ?? base.voc,
+        temp: h.temp?.[pausedIndex] ?? base.temp,
+      };
+    });
+    return snap;
+  })();
+
+  const handleReturnToLive = () => {
+    setIsPaused(false);
+    setPausedIndex(null);
+    setPausedLabel(null);
+  };
+
+  const handleChartClick = (event: any) => {
+    const chart = lineChartRef.current;
+    if (!chart || !history || !readings) return;
+
+    const elements = chart.getElementsAtEventForMode(
+      event?.nativeEvent ?? event,
+      'nearest',
+      { intersect: false },
+      true
+    );
+
+    if (!elements || elements.length === 0) return;
+    const index = elements[0].index as number;
+    if (!Number.isFinite(index) || index < 0) return;
+
+    const label = history.labels[index] ?? null;
+
+    setIsPaused(true);
+    setPausedIndex(index);
+    setPausedLabel(label);
+  };
+
   // LOGIQUE DE STATUT GLOBAL (Rouge > Orange > Vert)
   const redAlertZones = STATIONS.filter(name => {
-    const s = allStationsData[name];
+    const s = snapshotByStation[name];
     return s && (s.co2 >= 1000 || s.temp >= 38 || s.voc >= 250);
   });
   const orangeAlertZones = STATIONS.filter(name => {
-    const s = allStationsData[name];
+    const s = snapshotByStation[name];
     return s && !redAlertZones.includes(name) && (s.co2 >= 800 || s.temp >= 35 || s.voc >= 150);
   });
+
+  const bannerVariant: 'green' | 'orange' | 'red' =
+    redAlertZones.length > 0 ? 'red' : orangeAlertZones.length > 0 ? 'orange' : 'green';
 
   let bannerClass = "bg-emerald-950/10 border-emerald-500/30";
   let bannerIcon = <CheckCircle className="text-emerald-500" />;
@@ -181,36 +264,133 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto space-y-8">
           
           {/* BANDEAU STATUT GLOBAL TRI-ÉTATS */}
-          <div className={`rounded-2xl border px-6 py-4 flex items-center justify-between transition-all duration-500 ${bannerClass}`}>
-            <div className="flex items-center gap-4">
-              {bannerIcon}
-              <div>
-                <p className="font-bold text-sm uppercase">{bannerTitle}</p>
-                <p className="text-[11px] text-slate-400">{bannerDesc}</p>
+          {bannerVariant === 'red' ? (
+            <div className="relative overflow-hidden rounded-2xl border-2 border-red-500 bg-red-950/90 backdrop-blur-md px-6 py-4 shadow-[0_0_30px_rgba(220,38,38,0.6)] animate-pulse">
+              <div className="pointer-events-none absolute inset-0 opacity-25 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.18)_0px,rgba(255,255,255,0.18)_6px,transparent_6px,transparent_14px)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_60%)]" />
+
+              <div className="relative flex items-center justify-between gap-6">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle size={40} className="text-red-300 drop-shadow-[0_0_14px_rgba(248,113,113,0.9)] animate-bounce" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-white font-black tracking-wide uppercase text-sm md:text-base">
+                      ALERTE CRITIQUE : {redAlertZones.join(', ')}
+                    </p>
+                    <p className="text-red-100/90 text-xs md:text-sm mt-1">
+                      {(() => {
+                        const zone = redAlertZones[0];
+                        const s = zone ? snapshotByStation[zone] : null;
+                        if (!s) return 'Seuil critique dépassé - intervention immédiate.';
+
+                        const parts: string[] = [];
+                        if (s.co2 > 1000) parts.push(`Niveau CO2 > ${Math.round(s.co2)} ppm`);
+                        if (s.voc > 250) parts.push(`Niveau VOC > ${Math.round(s.voc)} ppb`);
+                        if (s.temp > 40) parts.push(`Température > ${Math.round(s.temp)} °C`);
+
+                        const riskParts: string[] = [];
+                        if (s.co2 > 1000) riskParts.push('ATMOSPHÈRE CONFINÉE');
+                        if (s.voc > 250) riskParts.push('RISQUE TOXIQUE DÉTECTÉ');
+                        if (s.temp > 40) riskParts.push('RISQUE DE SURCHAUFFE');
+
+                        const suffix = riskParts.length ? `   —   ${riskParts.join('   •   ')}` : '';
+                        return `${parts.join('   •   ')}${suffix}`;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <div className="hidden sm:block text-[10px] font-mono text-red-100/70 tracking-widest uppercase">Live: {lastUpdate}</div>
+                  <div className="bg-white text-red-700 font-black text-[10px] md:text-xs px-4 py-2 rounded-xl shadow-lg">
+                    ⚠️ INTERVENTION REQUISE
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="text-[10px] font-mono text-slate-500 tracking-widest uppercase">Live: {lastUpdate}</div>
-          </div>
+          ) : (
+            <div className={`rounded-2xl border px-6 py-4 flex items-center justify-between transition-all duration-500 ${bannerClass}`}>
+              <div className="flex items-center gap-4">
+                {bannerIcon}
+                <div>
+                  <p className="font-bold text-sm uppercase">{bannerTitle}</p>
+                  <p className="text-[11px] text-slate-400">{bannerDesc}</p>
+                </div>
+              </div>
+              <div className="text-[10px] font-mono text-slate-500 tracking-widest uppercase">Live: {lastUpdate}</div>
+            </div>
+          )}
+
+          {isPaused ? (
+            <div className="rounded-2xl border border-blue-700/40 bg-blue-950/20 px-5 py-3 flex items-center justify-between gap-4 shadow-lg">
+              <p className="text-xs text-slate-200">
+                Mode Historique : Affichage des données de {pausedLabel ?? '--:--:--'}
+              </p>
+              <button
+                type="button"
+                onClick={handleReturnToLive}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-300"
+              >
+                RETOUR AU DIRECT
+              </button>
+            </div>
+          ) : null}
 
           {/* JAUGES */}
-          {readings && (
+          {displayedReadings && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <GaugeCard title="CO2" value={readings.co2} unit="ppm" orangeThreshold={800} redThreshold={1000} icon={<Wind size={18}/>} />
-              <GaugeCard title="VOC" value={readings.voc} unit="ppb" orangeThreshold={150} redThreshold={250} icon={<Gauge size={18}/>} />
-              <GaugeCard title="Température" value={readings.temp} unit="°C" orangeThreshold={35} redThreshold={38} icon={<ThermometerSun size={18}/>} />
+              <GaugeCard title="CO2" value={displayedReadings.co2} unit="ppm" orangeThreshold={800} redThreshold={1000} icon={<Wind size={18}/>} />
+
+              <GaugeCard title="VOC" value={displayedReadings.voc} unit="ppb" orangeThreshold={150} redThreshold={250} icon={<Gauge size={18}/>} />
+              <GaugeCard title="Température" value={displayedReadings.temp} unit="°C" orangeThreshold={35} redThreshold={38} icon={<ThermometerSun size={18}/>} />
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800 rounded-3xl p-6 shadow-lg h-[450px] flex flex-col">
-              <h2 className="text-[10px] font-bold uppercase text-slate-500 mb-6 flex items-center gap-2"><Activity size={14} className="text-blue-500"/> Analyse temporelle : {selectedStation}</h2>
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <h2 className="text-[10px] font-bold uppercase text-slate-500 flex items-center gap-2"><Activity size={14} className="text-blue-500"/> Analyse temporelle : {selectedStation}</h2>
+                <ReportPdfButton zoneName={selectedStation} history={history} />
+              </div>
               <div className="flex-1 min-h-0">
                 {history && (
-                  <Line data={{ labels: history.labels, datasets: [
-                    { label: 'CO2', data: history.co2, borderColor: '#ef4444', yAxisID: 'y', tension: 0.4, pointRadius: 0, fill: false },
-                    { label: 'VOC', data: history.voc, borderColor: '#a855f7', yAxisID: 'y', tension: 0.4, pointRadius: 0, fill: false },
-                    { label: 'Temp', data: history.temp, borderColor: '#f59e0b', yAxisID: 'y1', tension: 0.4, pointRadius: 0, fill: false }
-                  ]}} options={{ responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, scales: { y: { min: 0, max: 1300, grid: { color: 'rgba(255,255,255,0.05)' } }, y1: { position: 'right', min: 10, max: 50, grid: { display: false } } }, plugins: { legend: { display: true, position: 'top', labels: { color: '#94a3b8', font: { size: 10 } } } } }} />
+                  <Line 
+                    ref={lineChartRef}
+                    data={{
+                      labels: history.labels,
+                      datasets: [
+                        { label: 'CO2', data: history.co2, borderColor: '#ef4444', yAxisID: 'y', tension: 0.4, pointRadius: 0, pointHitRadius: 12, pointHoverRadius: 5, fill: false },
+                        { label: 'VOC', data: history.voc, borderColor: '#a855f7', yAxisID: 'y', tension: 0.4, pointRadius: 0, pointHitRadius: 12, pointHoverRadius: 5, fill: false },
+                        { label: 'Temp', data: history.temp, borderColor: '#f59e0b', yAxisID: 'y1', tension: 0.4, pointRadius: 0, pointHitRadius: 12, pointHoverRadius: 5, fill: false }
+                      ]
+                    }} 
+                    options={{ 
+                      responsive: true, 
+                      maintainAspectRatio: false, 
+                      animation: { duration: 0 }, 
+                      interaction: { mode: 'nearest', intersect: false },
+                      scales: { 
+                        x: {
+                          ticks: {
+                            color: '#94a3b8',
+                            maxTicksLimit: 8,
+                            maxRotation: 0,
+                            minRotation: 0,
+                          },
+                          grid: { color: 'rgba(255,255,255,0.03)' },
+                        },
+                        y: { min: 0, max: 1300, grid: { color: 'rgba(255,255,255,0.05)' } }, 
+                        y1: { position: 'right', min: 10, max: 50, grid: { display: false } } 
+                      }, 
+                      plugins: { 
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8', font: { size: 10 } } }, 
+                        tooltip: { enabled: false } 
+                      }, 
+                      onClick: handleChartClick 
+                    }} 
+                  />
                 )}
               </div>
             </div>
@@ -219,7 +399,7 @@ export default function Dashboard() {
               <h2 className="text-[10px] font-bold uppercase text-slate-500 mb-6 tracking-widest">Capteurs</h2>
               <div className="space-y-3">
                 {STATIONS.map(name => {
-                  const data = allStationsData[name];
+                  const data = snapshotByStation[name];
                   const isRed = data && (data.co2 >= 1000 || data.temp >= 38 || data.voc >= 250);
                   const isOrange = data && !isRed && (data.co2 >= 800 || data.temp >= 35 || data.voc >= 150);
                   
