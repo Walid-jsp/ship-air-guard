@@ -286,14 +286,14 @@ export default function Dashboard() {
                         if (!s) return 'Seuil critique dépassé - intervention immédiate.';
 
                         const parts: string[] = [];
-                        if (s.co2 > 1000) parts.push(`Niveau CO2 > ${Math.round(s.co2)} ppm`);
-                        if (s.voc > 250) parts.push(`Niveau VOC > ${Math.round(s.voc)} ppb`);
-                        if (s.temp > 40) parts.push(`Température > ${Math.round(s.temp)} °C`);
+                        if (s.co2 >= 1000) parts.push(`Niveau CO2 > ${Math.round(s.co2)} ppm`);
+                        if (s.voc >= 250) parts.push(`Niveau VOC > ${Math.round(s.voc)} ppb`);
+                        if (s.temp >= 38) parts.push(`Température > ${Math.round(s.temp)} °C`);
 
                         const riskParts: string[] = [];
-                        if (s.co2 > 1000) riskParts.push('ATMOSPHÈRE CONFINÉE');
-                        if (s.voc > 250) riskParts.push('RISQUE TOXIQUE DÉTECTÉ');
-                        if (s.temp > 40) riskParts.push('RISQUE DE SURCHAUFFE');
+                        if (s.co2 >= 1000) riskParts.push('ATMOSPHÈRE CONFINÉE');
+                        if (s.voc >= 250) riskParts.push('RISQUE TOXIQUE');
+                        if (s.temp >= 38) riskParts.push('RISQUE DE SURCHAUFFE');
 
                         const suffix = riskParts.length ? `   —   ${riskParts.join('   •   ')}` : '';
                         return `${parts.join('   •   ')}${suffix}`;
