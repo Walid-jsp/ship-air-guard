@@ -37,7 +37,7 @@ export default function Home() {
     },
     contact: {
       title: "Contactez-nous",
-      content: "Une question technique ou une demande de devis ?\n\nEmail : support@shipairguard.com\nTéléphone : +33 (0)4 91 00 20 26\nAdresse : Quai de la Joliette, 13002 Marseille."
+      content: "Email : support@shipairguard.com\nTéléphone : +33 (0)4 91 12 34 56\nAdresse : 3 Pl. Victor Hugo, 13331 Marseille"
     },
     privacy: {
       title: "Confidentialité",

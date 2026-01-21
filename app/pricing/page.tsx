@@ -20,8 +20,7 @@ const plans = [
         { name: 'Création de compte administrateur', included: true },
         { name: 'Configuration du tableau de bord', included: true },
         { name: 'Formation sur notre outil', included: true },
-        { name: 'Maintenance matériel 2 ans', included: true },
-        { name: 'Support prioritaire démarrage', included: true },
+        { name: 'Support prioritaire au démarrage', included: true },
       ],
       cta: null, // "null" signifie qu'on n'affichera pas de bouton ici
       highlighted: false,
@@ -33,36 +32,18 @@ const plans = [
       price: '100',
       period: 'mois',
       icon: Zap,
-      features: [
+features: [
         { name: 'Surveillance des capteurs 24/7', included: true },
-        { name: 'Remplacement matériel express', included: true },
+        // On sépare en deux lignes pour être très clair sur le prix
+        { name: 'Garantie défaut constructeur (Gratuit)', included: true },
+        { name: 'Remplacement casse ou usure (400€)', included: true },
         { name: 'Support technique dédié', included: true },
         { name: 'Stockage des données illimité', included: true },
-        { name: 'Alertes prédictives IA', included: true },
+        { name: 'Alertes prédictives', included: true },
       ],
       cta: null,
       highlighted: false, // IMPORTANT : false enlève le fluo et la taille
       color: 'cyan',
-    },
-    {
-      name: 'Entreprise',
-      description: 'Pour les flottes complètes',
-      price: 'Sur devis',
-      period: '',
-      icon: Crown,
-      features: [
-        { name: 'Stations illimitées', included: true },
-        { name: 'Alertes ultra-avancées IA', included: true },
-        { name: 'Données temps réel + prédictions', included: true },
-        { name: 'Tableau de bord entièrement personnalisé', included: true },
-        { name: 'Support prioritaire 24/7', included: true },
-        { name: 'API sans limites', included: true },
-        { name: 'Rapports et analyses quotidiens', included: true },
-        { name: 'Gestionnaire de compte dédié', included: true },
-      ],
-      cta: 'Demander une démo',
-      highlighted: false,
-      color: 'purple',
     },
   ];
 
@@ -147,15 +128,17 @@ const plans = [
         </div>
 
         {/* PRICING CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+{/* On passe en 2 colonnes et on limite la largeur pour que ce soit centré */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20 max-w-4xl mx-auto">
 {plans.map((plan, idx) => {
             const Icon = plan.icon;
             const bgColor = plan.color === 'blue' ? 'from-blue-600 to-cyan-600' : 
                            plan.color === 'cyan' ? 'from-cyan-600 to-blue-600' : 
                            'from-purple-600 to-blue-600';
             
-// On garde 2xl pour l'installation (texte long) et on réduit les autres à 4xl (au lieu de 5xl)
-            const priceSize = plan.name === 'Installation' ? 'text-2xl' : 'text-4xl';
+// On met tout le monde en 'text-2xl' ou '3xl' pour un équilibre parfait
+            // Ici je mets 3xl pour le 100€ (au lieu de 4xl) pour qu'il soit moins imposant
+            const priceSize = plan.name === 'Installation' ? 'text-2xl' : 'text-3xl';
 
             return (
               <div
