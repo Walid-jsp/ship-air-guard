@@ -74,13 +74,17 @@ model EnvironmentalData {
   
   // Données météorologiques (pour dispersion des polluants)
   temperature     Float?    // °C - Température à 2m
+  windSpeed       Float?    // m/s - Vitesse du vent
+  windDirection   Float?    // degrés - Direction du vent
   
   // Données de qualité de l'air
-  pm10           Float?     // µg/m³ - Particules fines
-  pm25           Float?     // µg/m³ - Particules très fines
-  carbonDioxide  Float?     // µg/m³ - Dioxyde de carbone
-  carbonMonoxide Float?     // µg/m³ - Monoxyde de carbone
-  ozone          Float?     // µg/m³ - Ozone
+  pm10            Float?     // µg/m³ - Particules fines
+  pm25            Float?     // µg/m³ - Particules très fines
+  carbonDioxide   Float?     // µg/m³ - Dioxyde de carbone
+  carbonMonoxide  Float?     // µg/m³ - Monoxyde de carbone
+  nitrogenDioxide Float?     // µg/m³ - Dioxyde d'azote
+  sulphurDioxide  Float?     // µg/m³ - Dioxyde de soufre
+  ozone           Float?     // µg/m³ - Ozone
   
   // Métadonnées
   dataSource      String    @default("open-meteo")
