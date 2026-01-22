@@ -170,7 +170,7 @@ export default function Dashboard() {
             if (name === 'Vieux-Port' && environmentalData) {
               // Utiliser les vraies données environnementales pour Vieux-Port
               newCO2 = environmentalData.pm10 || 0;  // PM10
-              newVOC = environmentalData.sulphurDioxide || 0;  // SO2  
+              newVOC = (environmentalData as any).sulphurDioxide || 0;  // SO2  // SO2  
               newTemp = environmentalData.temperature || 0;  // Température
             } else {
               // Pour les autres stations, continuer avec les valeurs simulées
