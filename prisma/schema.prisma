@@ -1,12 +1,15 @@
+// 1. Configuration pour Vercel & Neon (PostgreSQL)
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // Connexion rapide (Pooling)
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Connexion directe (Migrations)
 }
 
+// 2. Modèles pour l'Authentification (NextAuth)
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -42,12 +45,12 @@ model Account {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  sessionToken String @unique
-  userId    String
-  expires   DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -60,30 +63,36 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// 3. Modèle pour les Données Environnementales (IoT Maritime)
 model EnvironmentalData {
   id              String    @id @default(cuid())
   timestamp       DateTime  @default(now())
-  
+   
   // Coordonnées géographiques
   latitude        Float     @default(43.2951)  // Vieux-Port de Marseille
-  longitude       Float     @default(5.3744)   
-  
-  // Données météorologiques (pour dispersion des polluants)
-  temperature     Float?    // °C - Température à 2m
-  windSpeed       Float?    // km/h - Vitesse du vent à 10m
-  windDirection   Float?    // ° - Direction du vent à 10m
-  
-  // Données de qualité de l'air
-  pm10           Float?     // µg/m³ - Particules fines
-  pm25           Float?     // µg/m³ - Particules très fines
-  carbonDioxide  Float?     // µg/m³ - Dioxyde de carbone
-  carbonMonoxide Float?     // µg/m³ - Monoxyde de carbone
-  ozone          Float?     // µg/m³ - Ozone
-  
+  longitude       Float     @default(5.3744)    
+   
+  // Données météorologiques (Dispersion)
+  temperature     Float?    // °C
+  windSpeed       Float?    // km/h
+  windDirection   Float?    // °
+   
+  // Données de qualité de l'air (Santé Équipage)
+  pm10            Float?    // µg/m³
+  pm25            Float?    // µg/m³
+  ozone           Float?    // µg/m³
+  carbonMonoxide  Float?    // µg/m³
+  carbonDioxide   Float?    // µg/m³ (Ventilation)
+
+  // --- CHAMPS CRITIQUES AJOUTÉS ---
+  sulphurDioxide  Float?    // µg/m³ (SO2 - Réglementation OMI)
+  nitrogenDioxide Float?    // µg/m³ (NOx - Échappement Moteurs)
+  // --------------------------------
+
   // Métadonnées
-  dataSource     String    @default("open-meteo") // Source des données
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  dataSource      String    @default("open-meteo")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([timestamp])
   @@index([createdAt])
