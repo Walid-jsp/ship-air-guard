@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // Utilise le Connection Pooling (Rapide)
-  directUrl = env("POSTGRES_URL_NON_POOLING") // Utilise la connexion Directe (Pour les migrations)
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -59,4 +58,33 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model EnvironmentalData {
+  id              String    @id @default(cuid())
+  timestamp       DateTime  @default(now())
+  
+  // Coordonnées géographiques
+  latitude        Float     @default(43.2951)  // Vieux-Port de Marseille
+  longitude       Float     @default(5.3744)   
+  
+  // Données météorologiques (pour dispersion des polluants)
+  temperature     Float?    // °C - Température à 2m
+  windSpeed       Float?    // km/h - Vitesse du vent à 10m
+  windDirection   Float?    // ° - Direction du vent à 10m
+  
+  // Données de qualité de l'air (focus pollution maritime)
+  pm10           Float?     // µg/m³ - Particules fines
+  pm25           Float?     // µg/m³ - Particules très fines
+  nitrogenDioxide Float?    // µg/m³ - Dioxyde d'azote
+  sulphurDioxide  Float?    // µg/m³ - Dioxyde de soufre (critique navires)
+  ozone          Float?     // µg/m³ - Ozone
+  
+  // Métadonnées
+  dataSource     String    @default("open-meteo") // Source des données
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([timestamp])
+  @@index([createdAt])
 }

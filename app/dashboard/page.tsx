@@ -8,6 +8,7 @@ import {
 import { AlertOctagon, CheckCircle, Activity, ThermometerSun, Gauge, Wind, Utensils, Coffee, DoorOpen, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ReportPdfButton from '../components/ReportPdfButton';
+import EnvironmentalMonitor from '@/components/EnvironmentalMonitor';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler);
 
@@ -422,6 +423,11 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Section Surveillance Environnementale */}
+        <div className="max-w-7xl mx-auto px-6 pb-12">
+          <EnvironmentalMonitor />
         </div>
       </main>
     </>
