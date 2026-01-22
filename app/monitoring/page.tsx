@@ -1,48 +1,77 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertTriangle, CheckCircle, Wind, Ship, Anchor } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, CheckCircle, Ship, ChevronDown } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
 
-// Configuration des seuils par zone
-const CONFIG = {
-  cuisine: { seuil: 1000, label: 'Cuisine / Locaux Vie' },
-  machine: { seuil: 1500, label: 'Salle des Machines' },
-  cabine: { seuil: 800, label: 'Cabines Équipage' },
-  passerelle: { seuil: 800, label: 'Passerelle de Nav.' }
+// Types de métriques disponibles
+type MetricType = 'temperature' | 'co2' | 'voc';
+
+interface MetricConfig {
+  label: string;
+  unit: string;
+  threshold: {
+    warning: number;
+    danger: number;
+  };
+}
+
+const METRICS: Record<MetricType, MetricConfig> = {
+  temperature: {
+    label: 'Température',
+    unit: '°C',
+    threshold: { warning: 30, danger: 35 }
+  },
+  co2: {
+    label: 'CO₂',
+    unit: 'µg/m³',
+    threshold: { warning: 1000, danger: 1500 }
+  },
+  voc: {
+    label: 'COV',
+    unit: 'µg/m³',
+    threshold: { warning: 220, danger: 350 }
+  }
 };
 
 export default function MonitoringPage() {
-  // État pour stocker les données des capteurs
-  const [sensorData, setSensorData] = useState({
-    cuisine: 450,
-    machine: 450,
-    cabine: 450,
-    passerelle: 450
-  });
+  const [currentMetric, setCurrentMetric] = useState<MetricType>('temperature');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Récupération des vraies données environnementales
+  const { data: environmentalData, loading, error } = useEnvironmentalData();
 
-  // Simulation des données en temps réel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSensorData(prev => ({
-        cuisine: Math.floor(Math.random() * (1200 - 400) + 400),
-        machine: Math.floor(Math.random() * (1800 - 400) + 400),
-        cabine: Math.floor(Math.random() * (1000 - 400) + 400),
-        passerelle: Math.floor(Math.random() * (1000 - 400) + 400),
-      }));
-    }, 2500); // Un peu plus lent pour mieux voir les changements
-
-    return () => clearInterval(interval);
-  }, []);
+  // Fonction pour obtenir la valeur actuelle selon la métrique sélectionnée
+  const getCurrentValue = (): number => {
+    if (!environmentalData) return 0;
+    
+    switch (currentMetric) {
+      case 'temperature':
+        return environmentalData.temperature || 0;
+      case 'co2':
+        return environmentalData.carbon_dioxide || 0;
+      case 'voc':
+        return environmentalData.carbon_monoxide || 0;
+      default:
+        return 0;
+    }
+  };
 
   // Fonction utilitaire pour déterminer le style Tailwind en fonction du seuil
-  const getStatusColor = (valeur: number, seuil: number) => {
-    // ALERTE ROUGE
-    if (valeur > seuil) return 'border-red-500 bg-red-950/90 shadow-[0_0_30px_rgba(239,68,68,0.5)] animate-pulse z-20';
-    // NORMAL VERT/BLEU
+  const getStatusColor = (valeur: number, config: MetricConfig) => {
+    if (valeur >= config.threshold.danger) {
+      return 'border-red-500 bg-red-950/90 shadow-[0_0_30px_rgba(239,68,68,0.5)] animate-pulse z-20';
+    }
+    if (valeur >= config.threshold.warning) {
+      return 'border-orange-500 bg-orange-950/80 shadow-[0_0_20px_rgba(251,146,60,0.4)] z-15';
+    }
     return 'border-cyan-800/50 bg-slate-900/80 hover:border-cyan-400/80 hover:bg-slate-800/90 z-10';
   };
+
+  const currentValue = getCurrentValue();
+  const metricConfig = METRICS[currentMetric];
 
   return (
     <>
@@ -56,8 +85,8 @@ export default function MonitoringPage() {
         </div>
 
         {/* En-tête du Dashboard */}
-        <header className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 md:mb-12 gap-4 pt-20">
-          <div className="flex items-center gap-4 self-start">
+        <header className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-12 gap-4 pt-20">
+          <div className="flex items-center gap-4 self-start flex-wrap">
             <Link href="/dashboard" className="group p-3 rounded-full bg-slate-800/50 border border-slate-700 hover:bg-slate-700 hover:border-cyan-500 transition-all">
               <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-cyan-400 transition" />
             </Link>
@@ -76,14 +105,49 @@ export default function MonitoringPage() {
                 Système de surveillance actif • Flux temps réel
               </p>
             </div>
+
+            {/* Bouton de sélection de métrique */}
+            <div className="relative ml-0 md:ml-6">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800/70 border border-slate-700 rounded-xl hover:bg-slate-700 hover:border-cyan-500 transition-all"
+              >
+                <span className="text-sm font-semibold text-cyan-400">{metricConfig.label}</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Menu déroulant */}
+              {isDropdownOpen && (
+                <div className="absolute top-full mt-2 left-0 md:right-0 md:left-auto w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                  {Object.entries(METRICS).map(([key, config]) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setCurrentMetric(key as MetricType);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left hover:bg-slate-800 transition-colors ${
+                        currentMetric === key ? 'bg-slate-800 text-cyan-400 font-semibold' : 'text-slate-300'
+                      }`}
+                    >
+                      {config.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
           {/* Légende */}
-          <div className="flex gap-6 bg-slate-900/50 p-3 rounded-xl border border-slate-800/80 backdrop-blur-sm">
+          <div className="flex gap-6 bg-slate-900/50 p-3 rounded-xl border border-slate-800/80 backdrop-blur-sm flex-wrap">
               <div className="flex items-center gap-2 text-sm text-slate-300 font-medium">
-                  <CheckCircle className="w-4 h-4 text-emerald-500" /> Qualité de l'air conforme
+                  <CheckCircle className="w-4 h-4 text-emerald-500" /> Normal
+              </div>
+              <div className="flex items-center gap-2 text-sm text-orange-300 font-medium">
+                  <AlertTriangle className="w-4 h-4 text-orange-500" /> Vigilance
               </div>
               <div className="flex items-center gap-2 text-sm text-red-300 font-medium">
-                  <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse" /> Seuil critique dépassé
+                  <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse" /> Critique
               </div>
           </div>
         </header>
@@ -145,75 +209,56 @@ export default function MonitoringPage() {
                   <rect x="600" y="90" width="250" height="220" fill="rgba(15, 23, 42, 0.3)" stroke="none" /> {/* Zone machine */}
               </svg>
 
-              {/* --- MODULES DE DONNÉES (Positionnés en absolu par dessus le SVG) --- */}
-
-              {/* Ces divs utilisent des pourcentages (top-%, left-%) pour rester au bon endroit 
-                  quelle que soit la taille de l'écran */}
-
-              {/* Module 1: Cuisine (Arrière Gauche - Babord Arrière) */}
-              <div className={`absolute top-[15%] left-[8%] w-[18%] min-w-[160px] p-3 md:p-5 rounded-2xl border-2 backdrop-blur-lg transition-all duration-500 group cursor-pointer ${getStatusColor(sensorData.cuisine, CONFIG.cuisine.seuil)}`}>
-                  <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-300 group-hover:text-white transition-colors">{CONFIG.cuisine.label}</h3>
-                      <div className="p-1.5 rounded-lg bg-slate-800/50">
-                          <Wind className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
-                      </div>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                      <span className="text-2xl md:text-4xl font-bold font-mono tracking-tight">{sensorData.cuisine}</span>
-                      <span className="text-xs font-medium text-slate-400">PPM</span>
-                  </div>
-              </div>
-
-              {/* Module 3: Cabine (Arrière Droite - Tribord Arrière) */}
-              <div className={`absolute bottom-[15%] left-[8%] w-[18%] min-w-[160px] p-3 md:p-5 rounded-2xl border-2 backdrop-blur-lg transition-all duration-500 group cursor-pointer ${getStatusColor(sensorData.cabine, CONFIG.cabine.seuil)}`}>
-                  <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-300 group-hover:text-white transition-colors">{CONFIG.cabine.label}</h3>
-                      <div className="p-1.5 rounded-lg bg-slate-800/50">
-                          <Anchor className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-                      </div>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                      <span className="text-2xl md:text-4xl font-bold font-mono tracking-tight">{sensorData.cabine}</span>
-                      <span className="text-xs font-medium text-slate-400">PPM</span>
-                  </div>
-              </div>
-
-               {/* Module 2: Salle Machine (Centre - Zone Technique) */}
-               {/* Un peu plus grand car c'est une zone critique */}
-               <div className={`absolute top-1/2 left-[42%] -translate-y-1/2 w-[20%] min-w-[180px] p-4 md:p-6 rounded-2xl border-2 backdrop-blur-lg transition-all duration-500 group cursor-pointer ${getStatusColor(sensorData.machine, CONFIG.machine.seuil)}`}>
+              {/* --- MODULE UNIQUE : SALLE COMMUNE (Centre - Zone Technique) --- */}
+              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] min-w-[200px] p-4 md:p-6 rounded-2xl border-2 backdrop-blur-lg transition-all duration-500 group cursor-pointer ${getStatusColor(currentValue, metricConfig)}`}>
                   <div className="flex justify-between items-start mb-4">
                       <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-300 group-hover:text-white transition-colors flex items-center gap-2">
-                          {CONFIG.machine.label}
-                          {sensorData.machine > CONFIG.machine.seuil && <AlertTriangle className="w-4 h-4 text-red-500 animate-bounce" />}
+                          Salle Commune
+                          {currentValue >= metricConfig.threshold.danger && <AlertTriangle className="w-4 h-4 text-red-500 animate-bounce" />}
                       </h3>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                      <span className={`text-4xl md:text-5xl font-black font-mono tracking-tighter ${sensorData.machine > CONFIG.machine.seuil ? 'text-red-100' : 'text-white'}`}>
-                          {sensorData.machine}
-                      </span>
-                      <span className="text-sm font-bold text-slate-400">CO2</span>
-                  </div>
-                  {/* Barre de progression visuelle pour la machine */}
-                  <div className="mt-4 h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                      <div 
-                          className={`h-full transition-all duration-1000 ease-out ${sensorData.machine > CONFIG.machine.seuil ? 'bg-gradient-to-r from-red-600 to-orange-600 w-[95%]' : 'bg-gradient-to-r from-cyan-600 to-blue-600'}`}
-                          style={{ width: `${Math.min(100, (sensorData.machine / 2000) * 100)}%` }}
-                      ></div>
-                  </div>
-              </div>
-
-              {/* Module 4: Passerelle (Avant - Proue) */}
-              <div className={`absolute top-1/2 right-[8%] -translate-y-1/2 w-[16%] min-w-[150px] p-3 md:p-5 rounded-2xl border-2 backdrop-blur-lg transition-all duration-500 group cursor-pointer ${getStatusColor(sensorData.passerelle, CONFIG.passerelle.seuil)}`}>
-                  <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-300 group-hover:text-white transition-colors">{CONFIG.passerelle.label}</h3>
-                      <div className="p-1.5 rounded-lg bg-slate-800/50">
-                          <Ship className="w-3 h-3 md:w-4 md:h-4 text-cyan-200" />
+                  
+                  {loading ? (
+                    <div className="flex items-center justify-center h-20">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+                    </div>
+                  ) : error ? (
+                    <div className="text-red-400 text-sm">Erreur de chargement</div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                          <span className={`text-4xl md:text-5xl font-black font-mono tracking-tighter ${
+                            currentValue >= metricConfig.threshold.danger ? 'text-red-100' : 
+                            currentValue >= metricConfig.threshold.warning ? 'text-orange-100' : 
+                            'text-white'
+                          }`}>
+                              {Math.round(currentValue)}
+                          </span>
+                          <span className="text-sm font-bold text-slate-400">{metricConfig.unit}</span>
                       </div>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                      <span className="text-2xl md:text-4xl font-bold font-mono tracking-tight">{sensorData.passerelle}</span>
-                      <span className="text-xs font-medium text-slate-400">PPM</span>
-                  </div>
+                      
+                      {/* Barre de progression visuelle */}
+                      <div className="mt-4 h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                          <div 
+                              className={`h-full transition-all duration-1000 ease-out ${
+                                currentValue >= metricConfig.threshold.danger ? 'bg-gradient-to-r from-red-600 to-orange-600' : 
+                                currentValue >= metricConfig.threshold.warning ? 'bg-gradient-to-r from-orange-500 to-yellow-500' :
+                                'bg-gradient-to-r from-cyan-600 to-blue-600'
+                              }`}
+                              style={{ 
+                                width: `${Math.min(100, (currentValue / metricConfig.threshold.danger) * 100)}%` 
+                              }}
+                          ></div>
+                      </div>
+
+                      {/* Indicateurs de seuils */}
+                      <div className="mt-4 flex justify-between text-xs text-slate-400">
+                        <span>Normal: &lt;{metricConfig.threshold.warning}</span>
+                        <span className="text-orange-400">Vigilance: {metricConfig.threshold.warning}</span>
+                        <span className="text-red-400">Critique: {metricConfig.threshold.danger}</span>
+                      </div>
+                    </>
+                  )}
               </div>
               
           </div>
