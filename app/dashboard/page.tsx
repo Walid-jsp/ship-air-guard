@@ -5,14 +5,14 @@ import { Doughnut, Line } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler 
 } from 'chart.js';
-import { AlertOctagon, CheckCircle, Activity, ThermometerSun, Gauge, Wind, Utensils, Coffee, DoorOpen, AlertTriangle } from 'lucide-react';
+import { AlertOctagon, CheckCircle, Activity, ThermometerSun, Gauge, Wind, Utensils, Coffee, DoorOpen, AlertTriangle, Ship, Waves } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ReportPdfButton from '../components/ReportPdfButton';
-import EnvironmentalMonitor from '@/components/EnvironmentalMonitor';
+import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler);
 
-const STATIONS = ['Cuisine', 'Restaurant', 'Couloir 1'];
+const STATIONS = ['Cuisine', 'Restaurant', 'Couloir 1', 'Vieux-Port'];
 const REFRESH_MS = 10000; // 10 secondes
 const POINTS = 20;
 
@@ -110,6 +110,9 @@ export default function Dashboard() {
   const [pausedLabel, setPausedLabel] = useState<string | null>(null);
   const lineChartRef = useRef<any>(null);
   const isPausedRef = useRef(false);
+  
+  // Hook pour les données environnementales réelles
+  const { data: environmentalData, loading: envLoading, error: envError, lastUpdate: envLastUpdate } = useEnvironmentalData();
 
   useEffect(() => {
     isPausedRef.current = isPaused;
@@ -123,13 +126,28 @@ export default function Dashboard() {
     STATIONS.forEach(name => {
       let c = 700, v = 100, t = 30;
       const history = { labels: [] as string[], co2: [] as number[], voc: [] as number[], temp: [] as number[] };
-      for (let i = 0; i < POINTS; i++) {
-        const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        c = getSmartValue(c, 'co2'); v = getSmartValue(v, 'voc'); t = getSmartValue(t, 'temp');
-        history.labels.push(time); history.co2.push(c); history.voc.push(v); history.temp.push(t);
+      
+      if (name === 'Vieux-Port') {
+        // Pour Vieux-Port, initialiser avec des valeurs environnementales typiques
+        c = 35; v = 15; t = 18; // PM10, SO2, Temperature maritimes
+        for (let i = 0; i < POINTS; i++) {
+          const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          history.labels.push(time); 
+          history.co2.push(c + (Math.random() - 0.5) * 10); 
+          history.voc.push(v + (Math.random() - 0.5) * 5); 
+          history.temp.push(t + (Math.random() - 0.5) * 3);
+        }
+        initialData[name] = { co2: c, voc: v, temp: t, co2Threshold: 100, vocThreshold: 350, tempThreshold: 40 };
+      } else {
+        // Pour les autres stations, utiliser la logique existante
+        for (let i = 0; i < POINTS; i++) {
+          const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          c = getSmartValue(c, 'co2'); v = getSmartValue(v, 'voc'); t = getSmartValue(t, 'temp');
+          history.labels.push(time); history.co2.push(c); history.voc.push(v); history.temp.push(t);
+        }
+        initialData[name] = { co2: c, voc: v, temp: t, co2Threshold: 1000, vocThreshold: 250, tempThreshold: 38 };
       }
       initialHist[name] = history;
-      initialData[name] = { co2: c, voc: v, temp: t, co2Threshold: 1000, vocThreshold: 250, tempThreshold: 38 };
     });
 
     setAllHistories(initialHist);
@@ -146,9 +164,20 @@ export default function Dashboard() {
           const nextHist = { ...prevHist };
 
           STATIONS.forEach(name => {
-            const newCO2 = getSmartValue(prev[name]?.co2 || 700, 'co2');
-            const newVOC = getSmartValue(prev[name]?.voc || 100, 'voc');
-            const newTemp = getSmartValue(prev[name]?.temp || 30, 'temp');
+            let newCO2, newVOC, newTemp;
+            
+            if (name === 'Vieux-Port' && environmentalData) {
+              // Utiliser les vraies données environnementales pour Vieux-Port
+              newCO2 = environmentalData.pm10 || 0;  // PM10
+              newVOC = environmentalData.sulphurDioxide || 0;  // SO2  
+              newTemp = environmentalData.temperature || 0;  // Température
+            } else {
+              // Pour les autres stations, continuer avec les valeurs simulées
+              newCO2 = getSmartValue(prev[name]?.co2 || 700, 'co2');
+              newVOC = getSmartValue(prev[name]?.voc || 100, 'voc');
+              newTemp = getSmartValue(prev[name]?.temp || 30, 'temp');
+            }
+            
             nextData[name] = { ...prev[name], co2: newCO2, voc: newVOC, temp: newTemp };
             nextHist[name] = {
               labels: [...prevHist[name].labels.slice(1), nextTime],
@@ -161,11 +190,14 @@ export default function Dashboard() {
         });
         return nextData;
       });
-      setLastUpdate(new Date().toLocaleTimeString());
+      setLastUpdate(environmentalData && envLastUpdate ? 
+        `${new Date().toLocaleTimeString()} (Env: ${envLastUpdate})` : 
+        new Date().toLocaleTimeString()
+      );
     }, REFRESH_MS);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [environmentalData]); // Dépendance ajoutée pour mise à jour quand données env. changent
 
   const readings = allStationsData[selectedStation];
   const history = allHistories[selectedStation];
@@ -423,11 +455,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Section Surveillance Environnementale */}
-        <div className="max-w-7xl mx-auto px-6 pb-12">
-          <EnvironmentalMonitor />
         </div>
       </main>
     </>
