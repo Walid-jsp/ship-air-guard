@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { jsPDF } from 'jspdf';
+// @ts-ignore
 import autoTable from 'jspdf-autotable';
 
 type HistorySeries = {
