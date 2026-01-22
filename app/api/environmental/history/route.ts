@@ -3,6 +3,26 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
   try {
+    const environmentalDelegate = (prisma as any).environmentalData;
+    if (!environmentalDelegate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Prisma non synchronisé: modèle EnvironmentalData absent du client Prisma.",
+        },
+        { status: 503 }
+      );
+    }
+
+    type EnvironmentalRecord = {
+      temperature: number | null;
+      windSpeed: number | null;
+      pm10: number | null;
+      pm25: number | null;
+      sulphurDioxide: number | null;
+      createdAt: Date;
+    };
+
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
     const hours = parseInt(searchParams.get('hours') || '24');
@@ -12,7 +32,7 @@ export async function GET(request: Request) {
     startDate.setHours(startDate.getHours() - hours);
 
     // Récupérer les données de la base
-    const environmentalData = await prisma.environmentalData.findMany({
+    const environmentalData = (await environmentalDelegate.findMany({
       where: {
         createdAt: {
           gte: startDate,
@@ -22,7 +42,7 @@ export async function GET(request: Request) {
         createdAt: 'desc',
       },
       take: limit,
-    });
+    })) as EnvironmentalRecord[];
 
     // Calculer les statistiques
     const stats = {

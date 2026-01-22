@@ -3,6 +3,17 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
+    const environmentalDelegate = (prisma as any).environmentalData;
+    if (!environmentalDelegate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Prisma non synchronisé: modèle EnvironmentalData absent du client Prisma.",
+        },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     
     // Validation des données reçues
@@ -21,7 +32,7 @@ export async function POST(request: Request) {
     } = body;
 
     // Sauvegarde en base de données
-    const environmentalData = await prisma.environmentalData.create({
+    const environmentalData = await environmentalDelegate.create({
       data: {
         timestamp: new Date(timestamp),
         latitude: parseFloat(latitude) || 43.2951,
