@@ -22,7 +22,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
+const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Monitoring', href: '/monitoring' },
     { name: 'Données Env.', href: '/environmental-data' },
@@ -114,14 +114,6 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
-                {/* Subscription Plan */}
-                <Link
-                  href="/pricing"
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${getSubscriptionBadgeColor(session.user?.subscriptionPlan || 'free')}`}
-                >
-                  <Zap size={16} />
-                  {getSubscriptionLabel(session.user?.subscriptionPlan || 'free')}
-                </Link>
                 <Link
                   href="/dashboard/profile"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300"

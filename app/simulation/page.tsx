@@ -11,11 +11,38 @@ import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler);
 
-const STATIONS = ['Salle commune'];
-const REFRESH_MS = 80000;
+const STATIONS = ['Cuisine', 'Restaurant', 'Couloir 1'];
+const REFRESH_MS = 10000; // 10 secondes
 const POINTS = 20;
 
+// --- GÉNÉRATEUR DE VALEURS INDÉPENDANTES (70/15/15) ---
+function getSmartValue(current: number, type: 'co2' | 'voc' | 'temp') {
+  // Tirage aléatoire propre à chaque appel de paramètre
+  const r1 = Math.random();
+  const r2 = Math.random();
+  const r3 = Math.random();
+  const speed = 0.9; // Vitesse de transition identique pour tous
+  let target;
 
+  if (type === 'co2') {
+    if (r1 < 0.85) target = 650 + Math.random() * 140;      // 70% Sain (650-790)
+    else if (r1 < 0.92) target = 850 + Math.random() * 140; // 15% Orange (850-990)
+    else target = 1050 + Math.random() * 250;             // 15% Rouge (1050-1300)
+  } 
+  else if (type === 'voc') {
+    if (r2 < 0.85) target = 60 + Math.random() * 80;       // 70% Sain (60-140)
+    else if (r2 < 0.9) target = 170 + Math.random() * 70;  // 15% Orange (170-240)
+    else target = 260 + Math.random() * 140;              // 15% Rouge (260-400)
+  } 
+  else { // Température
+    if (r3 < 0.85) target = 28 + Math.random() * 6;        // 70% Sain (28-34)
+    else if (r3 < 0.92) target = 35.5 + Math.random() * 2; // 15% Orange (35.5-37.5)
+    else target = 38.5 + Math.random() * 4;               // 15% Rouge (38.5-42.5)
+  }
+
+  // Application du lissage fluide vers la cible individuelle
+  return current + (target - current) * speed;
+}
 
 // --- COMPOSANT JAUGE ---
 function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: {
@@ -75,7 +102,7 @@ function GaugeCard({ title, value, unit, orangeThreshold, redThreshold, icon }: 
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
-  const [selectedStation, setSelectedStation] = useState('Salle commune');;
+  const [selectedStation, setSelectedStation] = useState('Cuisine');
   const [allStationsData, setAllStationsData] = useState<Record<string, any>>({});
   const [allHistories, setAllHistories] = useState<Record<string, any>>({});
   const [lastUpdate, setLastUpdate] = useState<string>('--:--');
@@ -98,25 +125,29 @@ export default function Dashboard() {
     const now = Date.now();
 
     STATIONS.forEach(name => {
-      let c = environmentalData?.carbon_dioxide || 450; 
-      let v = environmentalData?.carbon_monoxide || 10;
-      let t = environmentalData?.temperature || 22;
+      let c = 700, v = 100, t = 30;
       const history = { labels: [] as string[], co2: [] as number[], voc: [] as number[], temp: [] as number[] };
       
-      if (name === 'Salle commune') {
-        c = environmentalData?.carbon_dioxide || 450; 
-v = environmentalData?.carbon_monoxide || 10;
-t = environmentalData?.temperature || 22;
+      if (name === 'Vieux-Port') {
         // Pour Vieux-Port, initialiser avec des valeurs environnementales typiques
+        c = 35; v = 15; t = 18; // PM10, SO2, Temperature maritimes
         for (let i = 0; i < POINTS; i++) {
           const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           history.labels.push(time); 
-history.co2.push(c); 
-          history.voc.push(v); 
-          history.temp.push(t);
+          history.co2.push(c + (Math.random() - 0.5) * 10); 
+          history.voc.push(v + (Math.random() - 0.5) * 5); 
+          history.temp.push(t + (Math.random() - 0.5) * 3);
         }
         initialData[name] = { co2: c, voc: v, temp: t, co2Threshold: 100, vocThreshold: 350, tempThreshold: 40 };
-      } 
+      } else {
+        // Pour les autres stations, utiliser la logique existante
+        for (let i = 0; i < POINTS; i++) {
+          const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          c = getSmartValue(c, 'co2'); v = getSmartValue(v, 'voc'); t = getSmartValue(t, 'temp');
+          history.labels.push(time); history.co2.push(c); history.voc.push(v); history.temp.push(t);
+        }
+        initialData[name] = { co2: c, voc: v, temp: t, co2Threshold: 1000, vocThreshold: 250, tempThreshold: 38 };
+      }
       initialHist[name] = history;
     });
 
@@ -125,12 +156,9 @@ history.co2.push(c);
     setLastUpdate(new Date().toLocaleTimeString());
     setLoading(false);
 
-// 1. On crée la fonction de mise à jour
-    const updateData = () => {
+    const interval = setInterval(() => {
       if (isPausedRef.current) return;
-      
       const nextTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
       setAllStationsData(prev => {
         const nextData = { ...prev };
         setAllHistories(prevHist => {
@@ -139,11 +167,17 @@ history.co2.push(c);
           STATIONS.forEach(name => {
             let newCO2, newVOC, newTemp;
             
-            if (name === 'Salle commune' && environmentalData) {
-              newCO2 = environmentalData.carbon_dioxide || 0;
-              newVOC = environmentalData.carbon_monoxide || 0;
-              newTemp = environmentalData.temperature || 0;
-            } 
+            if (name === 'Vieux-Port' && environmentalData) {
+              // Utiliser les vraies données environnementales pour Vieux-Port
+              newCO2 = environmentalData.pm10 || 0;  // PM10
+              newVOC = environmentalData.sulphurDioxide || 0;  // SO2  
+              newTemp = environmentalData.temperature || 0;  // Température
+            } else {
+              // Pour les autres stations, continuer avec les valeurs simulées
+              newCO2 = getSmartValue(prev[name]?.co2 || 700, 'co2');
+              newVOC = getSmartValue(prev[name]?.voc || 100, 'voc');
+              newTemp = getSmartValue(prev[name]?.temp || 30, 'temp');
+            }
             
             nextData[name] = { ...prev[name], co2: newCO2, voc: newVOC, temp: newTemp };
             nextHist[name] = {
@@ -157,18 +191,11 @@ history.co2.push(c);
         });
         return nextData;
       });
-
       setLastUpdate(environmentalData && envLastUpdate ? 
         `${new Date().toLocaleTimeString()} (Env: ${envLastUpdate})` : 
         new Date().toLocaleTimeString()
       );
-    };
-
-    // 2. ON L'APPELLE TOUT DE SUITE
-    updateData();
-
-    // 3. ON LANCE L'INTERVALLE POUR LA SUITE
-    const interval = setInterval(updateData, REFRESH_MS);
+    }, REFRESH_MS);
 
     return () => clearInterval(interval);
   }, [environmentalData]); // Dépendance ajoutée pour mise à jour quand données env. changent
@@ -387,8 +414,8 @@ history.co2.push(c);
                           },
                           grid: { color: 'rgba(255,255,255,0.03)' },
                         },
-                        y: { min: 0, max: 1200, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        y1: { position: 'right', min: 0, max: 50, grid: { display: false } }
+                        y: { min: 0, max: 1300, grid: { color: 'rgba(255,255,255,0.05)' } }, 
+                        y1: { position: 'right', min: 10, max: 50, grid: { display: false } } 
                       }, 
                       plugins: { 
                         legend: { display: true, position: 'top', labels: { color: '#94a3b8', font: { size: 10 } } }, 
@@ -417,7 +444,7 @@ history.co2.push(c);
                     <button key={name} onClick={() => setSelectedStation(name)} className={`w-full p-5 rounded-2xl border transition-all text-left flex justify-between items-center ${selectedStation === name ? 'bg-blue-600/20 border-blue-500 shadow-md' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}>
                       <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-lg ${selectedStation === name ? 'bg-blue-500 text-white' : 'bg-slate-700/50 text-slate-400'}`}>
-                          {name === 'Salle commune' && <Utensils size={18}/>} {name === 'Restaurant' && <Coffee size={18}/>} {name === 'Couloir 1' && <DoorOpen size={18}/>}
+                          {name === 'Cuisine' && <Utensils size={18}/>} {name === 'Restaurant' && <Coffee size={18}/>} {name === 'Couloir 1' && <DoorOpen size={18}/>}
                         </div>
                         <span className={`text-sm font-bold tracking-tight ${selectedStation === name ? 'text-white' : 'text-slate-400'}`}>{name}</span>
                       </div>

@@ -27,15 +27,14 @@ const plans = [
       color: 'blue',
     },
 {
-      name: 'Maintenance',
-      description: 'Pour une sérénité totale',
-      price: '100',
-      period: 'mois',
-      icon: Zap,
+name: 'Maintenance',
+  description: 'Pour une sérénité totale',
+  price: '20€',             // On garde juste le chiffre
+  period: ' mois / capteur', // On précise l'unité ici
+  icon: Zap,
 features: [
         { name: 'Surveillance des capteurs 24/7', included: true },
-        // On sépare en deux lignes pour être très clair sur le prix
-        { name: 'Garantie défaut constructeur (Gratuit)', included: true },
+        { name: 'Garantie défaut constructeur', included: true },
         { name: 'Remplacement casse ou usure (400€)', included: true },
         { name: 'Support technique dédié', included: true },
         { name: 'Stockage des données illimité', included: true },
@@ -174,7 +173,7 @@ features: [
                   <div className="mb-8">
                     <div className="flex items-baseline gap-2">
                       <span className={`${priceSize} font-bold text-white leading-tight`}>{plan.price}</span>
-                      {plan.period && <span className="text-slate-400 text-lg">€/{plan.period}</span>}
+                      {plan.period && <span className="text-slate-400 text-lg">/{plan.period}</span>}
                     </div>
 
                   </div>
