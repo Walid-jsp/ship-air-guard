@@ -24,6 +24,8 @@ export async function POST(request: Request) {
       temperature,
       pm10,
       pm25,
+      carbon_dioxide,
+      carbon_monoxide,
       ozone
     } = body;
 
@@ -36,6 +38,8 @@ export async function POST(request: Request) {
         temperature: parseFloat(temperature) || null,
         pm10: parseFloat(pm10) || null,
         pm25: parseFloat(pm25) || null,
+        carbonDioxide: parseFloat(carbon_dioxide) || null,
+        carbonMonoxide: parseFloat(carbon_monoxide) || null,
         ozone: parseFloat(ozone) || null,
         dataSource: 'open-meteo',
       },

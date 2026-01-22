@@ -67,15 +67,26 @@ export async function GET(request: Request) {
       }
     }
 
+    // Mapper les données de Prisma (camelCase) vers le format attendu par le frontend (snake_case)
+    const formattedData = environmentalData.map((record: any) => ({
+      ...record,
+      carbon_dioxide: record.carbonDioxide,
+      carbon_monoxide: record.carbonMonoxide,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: environmentalData,
+      count: formattedData.length,
+      data: formattedData,
+      period: `${hours}h`,
+      from: startDate.toISOString(),
+      to: new Date().toISOString(),
       stats,
       meta: {
         limit,
         hours,
         startDate,
-        count: environmentalData.length,
+        count: formattedData.length,
       }
     });
 

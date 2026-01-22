@@ -106,5 +106,5 @@ export const OPEN_METEO_APIS = {
 // Paramètres pour les appels API
 export const API_PARAMETERS = {
   weather: 'temperature_2m',
-  airQuality: 'carbon_dioxide,carbon_monoxide'
+  airQuality: 'pm10,pm2_5,carbon_dioxide,carbon_monoxide,ozone'
 } as const;
