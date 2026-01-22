@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // Connexion rapide
-  directUrl = env("POSTGRES_URL_NON_POOLING") // Connexion directe
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -74,11 +73,11 @@ model EnvironmentalData {
   windSpeed       Float?    // km/h - Vitesse du vent à 10m
   windDirection   Float?    // ° - Direction du vent à 10m
   
-  // Données de qualité de l'air (focus pollution maritime)
+  // Données de qualité de l'air
   pm10           Float?     // µg/m³ - Particules fines
   pm25           Float?     // µg/m³ - Particules très fines
-  nitrogenDioxide Float?    // µg/m³ - Dioxyde d'azote
-  sulphurDioxide  Float?    // µg/m³ - Dioxyde de soufre (critique navires)
+  carbonDioxide  Float?     // µg/m³ - Dioxyde de carbone
+  carbonMonoxide Float?     // µg/m³ - Monoxyde de carbone
   ozone          Float?     // µg/m³ - Ozone
   
   // Métadonnées

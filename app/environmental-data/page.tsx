@@ -14,8 +14,8 @@ interface EnvironmentalRecord {
   windDirection: number | null;
   pm10: number | null;
   pm25: number | null;
-  nitrogenDioxide: number | null;
-  sulphurDioxide: number | null;
+  carbon_dioxide: number | null;
+  carbon_monoxide: number | null;
   ozone: number | null;
   dataSource: string;
   createdAt: string;
@@ -140,50 +140,6 @@ export default function EnvironmentalDataPage() {
             </div>
           </div>
 
-          {/* Statistiques rapides */}
-          {!loading && data.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <Thermometer size={20} className="text-orange-400" />
-                  <span className="text-sm text-slate-300">Température Moy.</span>
-                </div>
-                <div className="text-2xl font-bold text-orange-400">
-                  {formatValue(data.reduce((sum, d) => sum + (d.temperature || 0), 0) / data.filter(d => d.temperature !== null).length, '°C')}
-                </div>
-              </div>
-
-              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <Wind size={20} className="text-blue-400" />
-                  <span className="text-sm text-slate-300">Vent Moy.</span>
-                </div>
-                <div className="text-2xl font-bold text-blue-400">
-                  {formatValue(data.reduce((sum, d) => sum + (d.windSpeed || 0), 0) / data.filter(d => d.windSpeed !== null).length, ' km/h')}
-                </div>
-              </div>
-
-              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle size={20} className="text-purple-400" />
-                  <span className="text-sm text-slate-300">PM10 Moy.</span>
-                </div>
-                <div className="text-2xl font-bold text-purple-400">
-                  {formatValue(data.reduce((sum, d) => sum + (d.pm10 || 0), 0) / data.filter(d => d.pm10 !== null).length, ' µg/m³')}
-                </div>
-              </div>
-
-              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin size={20} className="text-green-400" />
-                  <span className="text-sm text-slate-300">SO2 Max.</span>
-                </div>
-                <div className="text-2xl font-bold text-green-400">
-                  {formatValue(Math.max(...data.map(d => d.sulphurDioxide || 0)), ' µg/m³')}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* États de chargement */}
           {loading && (
@@ -223,25 +179,10 @@ export default function EnvironmentalDataPage() {
                         </div>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        <div className="flex items-center gap-2">
-                          <Wind size={16} />
-                          Vent (km/h)
-                        </div>
+                        CO₂ (ppm)
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        PM10 (µg/m³)
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        PM2.5 (µg/m³)
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        SO₂ (µg/m³)
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        NO₂ (µg/m³)
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                        O₃ (µg/m³)
+                        COV (ppb)
                       </th>
                     </tr>
                   </thead>
@@ -265,38 +206,13 @@ export default function EnvironmentalDataPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm">
-                            <div className="text-blue-400 font-medium">
-                              {formatValue(record.windSpeed, ' km/h')}
-                            </div>
-                            {record.windDirection && (
-                              <div className="text-xs text-slate-500">
-                                {record.windDirection.toFixed(0)}°
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
                             <span className={`font-medium ${getQualityLevel('pm10', record.pm10).color}`}>
-                              {formatValue(record.pm10)}
+                              {formatValue(record.carbon_dioxide)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <span className={`font-medium ${getQualityLevel('pm10', record.pm25).color}`}>
-                              {formatValue(record.pm25)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <span className={`font-medium ${getQualityLevel('so2', record.sulphurDioxide).color}`}>
-                              {formatValue(record.sulphurDioxide)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <span className="font-medium text-yellow-400">
-                              {formatValue(record.nitrogenDioxide)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <span className="font-medium text-cyan-400">
-                              {formatValue(record.ozone)}
+                              {formatValue(record.carbon_monoxide)}
                             </span>
                           </td>
                         </tr>

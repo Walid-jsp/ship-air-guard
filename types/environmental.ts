@@ -2,16 +2,15 @@
 
 export interface WeatherData {
   temperature: number;  // °C - Température à 2m
-  windSpeed: number;    // km/h - Vitesse du vent à 10m
-  windDirection: number; // ° - Direction du vent à 10m
 }
 
 export interface AirQualityData {
   pm10: number;           // µg/m³ - Particules fines
   pm25: number;           // µg/m³ - Particules très fines
-  nitrogenDioxide: number; // µg/m³ - Dioxyde d'azote
-  sulphurDioxide: number;  // µg/m³ - Dioxyde de soufre (critique pour les navires)
+  carbon_dioxide: number; // µg/m³ - Dioxyde d'azote
+  carbon_monoxide: number;
   ozone: number;          // µg/m³ - Ozone
+  
 }
 
 export interface EnvironmentalData extends WeatherData, AirQualityData {
@@ -33,15 +32,15 @@ export const ENVIRONMENTAL_THRESHOLDS = {
     moderate: 25, 
     poor: 50 
   },
-  nitrogenDioxide: { 
+  carbon_dioxide: { 
     good: 40, 
     moderate: 100, 
     poor: 200 
   },
-  sulphurDioxide: { 
-    good: 20,      // Critique pour surveiller les navires
+    carbon_monoxide: { 
+    good: 40, 
     moderate: 100, 
-    poor: 350 
+    poor: 200 
   },
   ozone: { 
     good: 100, 
@@ -54,11 +53,6 @@ export const ENVIRONMENTAL_THRESHOLDS = {
     cold: 10,        // Froid
     comfortable: 25, // Confortable
     hot: 35          // Chaud
-  },
-  windSpeed: { 
-    calm: 10,     // Calme
-    moderate: 25, // Modéré
-    strong: 50    // Fort
   },
 } as const;
 
@@ -73,12 +67,10 @@ export interface EnvironmentalDataDB {
   latitude: number;
   longitude: number;
   temperature: number | null;
-  windSpeed: number | null;
-  windDirection: number | null;
   pm10: number | null;
   pm25: number | null;
-  nitrogenDioxide: number | null;
-  sulphurDioxide: number | null;
+  carbon_dioxide: number | null;
+  carbon_monoxide: number | null;
   ozone: number | null;
   dataSource: string;
   createdAt: Date;
@@ -89,11 +81,12 @@ export interface EnvironmentalDataDB {
 export interface EnvironmentalStats {
   totalRecords: number;
   averageTemperature: number;
-  averageWindSpeed: number;
   averagePM10: number;
   averagePM25: number;
-  averageSulphurDioxide: number;
-  maxSulphurDioxide: number;
+  averagecarbon_dioxide: number;
+  maxcarbon_dioxide: number;
+    averagecarbon_monoxide: number;
+  maxcarbon_monoxide: number;
   lastUpdate: Date | null;
 }
 
@@ -113,6 +106,6 @@ export const OPEN_METEO_APIS = {
 
 // Paramètres pour les appels API
 export const API_PARAMETERS = {
-  weather: 'temperature_2m,wind_speed_10m,wind_direction_10m',
-  airQuality: 'pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone'
+  weather: 'temperature_2m',
+  airQuality: 'carbon_dioxide,carbon_monoxide'
 } as const;

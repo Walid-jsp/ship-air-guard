@@ -69,8 +69,8 @@ export const useEnvironmentalData = (): UseEnvironmentalDataReturn => {
     return {
       pm10: current.pm10 || 0,
       pm25: current.pm2_5 || 0,
-      nitrogenDioxide: current.nitrogen_dioxide || 0,
-      sulphurDioxide: current.sulphur_dioxide || 0,  // Critique pour surveiller les navires
+      carbon_dioxide: current.carbon_dioxide || 0,
+      carbon_monoxide: current.carbon_monoxide || 0,
       ozone: current.ozone || 0,
     };
   };
