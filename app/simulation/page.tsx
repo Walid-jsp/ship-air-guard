@@ -130,7 +130,7 @@ export default function Dashboard() {
       
       if (name === 'Vieux-Port') {
         // Pour Vieux-Port, initialiser avec des valeurs environnementales typiques
-        c = 35; v = 15; t = 18; // PM10, SO2, Temperature maritimes
+        c = 35; v = 15; t = 18; // PM10, PM2.5, Temperature maritimes
         for (let i = 0; i < POINTS; i++) {
           const time = new Date(now - (POINTS - i) * REFRESH_MS).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           history.labels.push(time); 
@@ -170,7 +170,7 @@ export default function Dashboard() {
             if (name === 'Vieux-Port' && environmentalData) {
               // Utiliser les vraies données environnementales pour Vieux-Port
               newCO2 = environmentalData.pm10 || 0;  // PM10
-              newVOC = (environmentalData as any).sulphurDioxide || 0;  // SO2  // SO2  
+              newVOC = environmentalData.pm25 || 0;  // PM2.5  
               newTemp = environmentalData.temperature || 0;  // Température
             } else {
               // Pour les autres stations, continuer avec les valeurs simulées

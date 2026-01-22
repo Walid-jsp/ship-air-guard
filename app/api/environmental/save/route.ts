@@ -22,12 +22,8 @@ export async function POST(request: Request) {
       latitude,
       longitude,
       temperature,
-      windSpeed,
-      windDirection,
       pm10,
       pm25,
-      nitrogenDioxide,
-      sulphurDioxide,
       ozone
     } = body;
 
@@ -38,12 +34,8 @@ export async function POST(request: Request) {
         latitude: parseFloat(latitude) || 43.2951,
         longitude: parseFloat(longitude) || 5.3744,
         temperature: parseFloat(temperature) || null,
-        windSpeed: parseFloat(windSpeed) || null,
-        windDirection: parseFloat(windDirection) || null,
         pm10: parseFloat(pm10) || null,
         pm25: parseFloat(pm25) || null,
-        nitrogenDioxide: parseFloat(nitrogenDioxide) || null,
-        sulphurDioxide: parseFloat(sulphurDioxide) || null,
         ozone: parseFloat(ozone) || null,
         dataSource: 'open-meteo',
       },

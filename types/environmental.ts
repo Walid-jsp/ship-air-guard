@@ -7,10 +7,9 @@ export interface WeatherData {
 export interface AirQualityData {
   pm10: number;           // µg/m³ - Particules fines
   pm25: number;           // µg/m³ - Particules très fines
-  carbon_dioxide: number; // µg/m³ - Dioxyde d'azote
+  carbon_dioxide: number; // µg/m³ - Dioxyde de carbone
   carbon_monoxide: number;
   ozone: number;          // µg/m³ - Ozone
-  
 }
 
 export interface EnvironmentalData extends WeatherData, AirQualityData {
@@ -47,7 +46,7 @@ export const ENVIRONMENTAL_THRESHOLDS = {
     moderate: 160, 
     poor: 240 
   },
-  
+
   // Météo
   temperature: { 
     cold: 10,        // Froid

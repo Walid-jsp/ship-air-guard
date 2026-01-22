@@ -16,10 +16,8 @@ export async function GET(request: Request) {
 
     type EnvironmentalRecord = {
       temperature: number | null;
-      windSpeed: number | null;
       pm10: number | null;
       pm25: number | null;
-      sulphurDioxide: number | null;
       createdAt: Date;
     };
 
@@ -48,36 +46,24 @@ export async function GET(request: Request) {
     const stats = {
       totalRecords: environmentalData.length,
       averageTemperature: 0,
-      averageWindSpeed: 0,
       averagePM10: 0,
       averagePM25: 0,
-      averageSulphurDioxide: 0,
-      maxSulphurDioxide: 0,
       lastUpdate: environmentalData[0]?.createdAt || null,
     };
 
     if (environmentalData.length > 0) {
       const validTemp = environmentalData.filter(d => d.temperature !== null);
-      const validWind = environmentalData.filter(d => d.windSpeed !== null);
       const validPM10 = environmentalData.filter(d => d.pm10 !== null);
       const validPM25 = environmentalData.filter(d => d.pm25 !== null);
-      const validSO2 = environmentalData.filter(d => d.sulphurDioxide !== null);
 
       if (validTemp.length > 0) {
         stats.averageTemperature = validTemp.reduce((sum, d) => sum + (d.temperature || 0), 0) / validTemp.length;
-      }
-      if (validWind.length > 0) {
-        stats.averageWindSpeed = validWind.reduce((sum, d) => sum + (d.windSpeed || 0), 0) / validWind.length;
       }
       if (validPM10.length > 0) {
         stats.averagePM10 = validPM10.reduce((sum, d) => sum + (d.pm10 || 0), 0) / validPM10.length;
       }
       if (validPM25.length > 0) {
         stats.averagePM25 = validPM25.reduce((sum, d) => sum + (d.pm25 || 0), 0) / validPM25.length;
-      }
-      if (validSO2.length > 0) {
-        stats.averageSulphurDioxide = validSO2.reduce((sum, d) => sum + (d.sulphurDioxide || 0), 0) / validSO2.length;
-        stats.maxSulphurDioxide = Math.max(...validSO2.map(d => d.sulphurDioxide || 0));
       }
     }
 

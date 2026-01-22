@@ -70,25 +70,18 @@ model EnvironmentalData {
    
   // Coordonnées géographiques
   latitude        Float     @default(43.2951)  // Vieux-Port de Marseille
-  longitude       Float     @default(5.3744)    
-   
-  // Données météorologiques (Dispersion)
-  temperature     Float?    // °C
-  windSpeed       Float?    // km/h
-  windDirection   Float?    // °
-   
-  // Données de qualité de l'air (Santé Équipage)
-  pm10            Float?    // µg/m³
-  pm25            Float?    // µg/m³
-  ozone           Float?    // µg/m³
-  carbonMonoxide  Float?    // µg/m³
-  carbonDioxide   Float?    // µg/m³ (Ventilation)
-
-  // --- CHAMPS CRITIQUES AJOUTÉS ---
-  sulphurDioxide  Float?    // µg/m³ (SO2 - Réglementation OMI)
-  nitrogenDioxide Float?    // µg/m³ (NOx - Échappement Moteurs)
-  // --------------------------------
-
+  longitude       Float     @default(5.3744)   
+  
+  // Données météorologiques (pour dispersion des polluants)
+  temperature     Float?    // °C - Température à 2m
+  
+  // Données de qualité de l'air
+  pm10           Float?     // µg/m³ - Particules fines
+  pm25           Float?     // µg/m³ - Particules très fines
+  carbonDioxide  Float?     // µg/m³ - Dioxyde de carbone
+  carbonMonoxide Float?     // µg/m³ - Monoxyde de carbone
+  ozone          Float?     // µg/m³ - Ozone
+  
   // Métadonnées
   dataSource      String    @default("open-meteo")
   createdAt       DateTime  @default(now())

@@ -25,7 +25,6 @@ import {
   getWeatherColorClass,
   getOverallAirQuality,
   getQualityMessage,
-  getWindDirection,
   getMaritimeAdvice,
   formatTimeStamp
 } from '@/utils/environmental';
@@ -38,7 +37,6 @@ interface DataCardProps {
   icon: React.ReactNode;
   level?: QualityLevel;
   description?: string;
-  windDirection?: number;
 }
 
 const DataCard: React.FC<DataCardProps> = ({ 
@@ -47,16 +45,10 @@ const DataCard: React.FC<DataCardProps> = ({
   unit, 
   icon, 
   level, 
-  description, 
-  windDirection 
+  description
 }) => {
   const colorClass = level ? getQualityColorClass(level) : 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30';
-  
-  // Cas spécial pour la direction du vent
-  const displayValue = windDirection !== undefined 
-    ? `${getWindDirection(windDirection)} (${value?.toFixed(0)}°)` 
-    : value !== null ? value.toFixed(1) : '--';
-  
+  const displayValue = value !== null ? value.toFixed(1) : '--';
   return (
     <div className={`rounded-xl border p-4 backdrop-blur-sm transition-all hover:scale-105 ${colorClass}`}>
       <div className="flex items-center justify-between mb-2">
@@ -66,11 +58,9 @@ const DataCard: React.FC<DataCardProps> = ({
       <div className="space-y-1">
         <div className="flex items-baseline gap-2">
           <span className="text-2xl font-bold">
-            {windDirection !== undefined ? displayValue : displayValue}
+            {displayValue}
           </span>
-          {windDirection === undefined && (
-            <span className="text-xs opacity-70">{unit}</span>
-          )}
+          <span className="text-xs opacity-70">{unit}</span>
         </div>
         {description && (
           <p className="text-xs opacity-60">{description}</p>
@@ -126,8 +116,6 @@ const EnvironmentalMonitor: React.FC = () => {
   // Calcul des niveaux de qualité en utilisant nos utilitaires
   const pm10Level = getQualityLevel(data.pm10, ENVIRONMENTAL_THRESHOLDS.pm10);
   const pm25Level = getQualityLevel(data.pm25, ENVIRONMENTAL_THRESHOLDS.pm25);
-  const no2Level = getQualityLevel(data.nitrogenDioxide, ENVIRONMENTAL_THRESHOLDS.nitrogenDioxide);
-  const so2Level = getQualityLevel(data.sulphurDioxide, ENVIRONMENTAL_THRESHOLDS.sulphurDioxide);
   const ozoneLevel = getQualityLevel(data.ozone, ENVIRONMENTAL_THRESHOLDS.ozone);
 
   // Évaluation globale de la qualité de l'air
@@ -195,9 +183,8 @@ const EnvironmentalMonitor: React.FC = () => {
       {/* Données météorologiques */}
       <div>
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Wind className="w-5 h-5 text-cyan-400" />
+          <Thermometer className="w-5 h-5 text-cyan-400" />
           Conditions Météorologiques
-          <span className="text-sm text-slate-400 font-normal">(Dispersion des polluants)</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DataCard
@@ -206,21 +193,6 @@ const EnvironmentalMonitor: React.FC = () => {
             unit="°C"
             icon={<Thermometer className="w-5 h-5" />}
             description="Température à 2m"
-          />
-          <DataCard
-            title="Vitesse du Vent"
-            value={data.windSpeed}
-            unit="km/h"
-            icon={<Wind className="w-5 h-5" />}
-            description="Vitesse à 10m"
-          />
-          <DataCard
-            title="Direction du Vent"
-            value={data.windDirection}
-            unit="°"
-            windDirection={data.windDirection}
-            icon={<Gauge className="w-5 h-5" />}
-            description="Direction à 10m"
           />
         </div>
       </div>
@@ -248,22 +220,6 @@ const EnvironmentalMonitor: React.FC = () => {
             icon={<Gauge className="w-5 h-5" />}
             level={pm25Level}
             description="Particules très fines"
-          />
-          <DataCard
-            title="NO₂"
-            value={data.nitrogenDioxide}
-            unit="µg/m³"
-            icon={<Gauge className="w-5 h-5" />}
-            level={no2Level}
-            description="Dioxyde d'azote"
-          />
-          <DataCard
-            title="SO₂"
-            value={data.sulphurDioxide}
-            unit="µg/m³"
-            icon={<Ship className="w-5 h-5" />}
-            level={so2Level}
-            description="Dioxyde de soufre (Navires)"
           />
           <DataCard
             title="O₃"

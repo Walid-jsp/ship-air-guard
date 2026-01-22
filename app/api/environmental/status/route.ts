@@ -35,7 +35,7 @@ export async function GET() {
         timestamp: lastRecord.timestamp,
         temperature: lastRecord.temperature,
         pm10: lastRecord.pm10,
-        sulphurDioxide: lastRecord.sulphurDioxide,
+        pm25: lastRecord.pm25,
         createdAt: lastRecord.createdAt
       } : null
     });
@@ -44,10 +44,10 @@ export async function GET() {
     console.error('Erreur statut base de données:', error);
     return NextResponse.json(
       { 
-        success: false,
-        error: 'Erreur base de données',
+        success: false, 
+        error: 'Erreur lors de la récupération du statut',
         details: error instanceof Error ? error.message : 'Erreur inconnue'
-      }, 
+      },
       { status: 500 }
     );
   }

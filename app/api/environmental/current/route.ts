@@ -14,7 +14,7 @@ export async function GET() {
     const weatherParams = new URLSearchParams({
       latitude: LATITUDE.toString(),
       longitude: LONGITUDE.toString(),
-      current: 'temperature_2m,wind_speed_10m,wind_direction_10m',
+      current: 'temperature_2m',
       timezone: 'Europe/Paris'
     });
 
@@ -22,7 +22,7 @@ export async function GET() {
     const airQualityParams = new URLSearchParams({
       latitude: LATITUDE.toString(),
       longitude: LONGITUDE.toString(),
-      current: 'pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone',
+      current: 'pm10,pm2_5,ozone',
       timezone: 'Europe/Paris'
     });
 
@@ -54,19 +54,13 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       weather: {
         temperature: weatherData.current?.temperature_2m || null,
-        windSpeed: weatherData.current?.wind_speed_10m || null,
-        windDirection: weatherData.current?.wind_direction_10m || null,
         units: {
-          temperature: "°C",
-          windSpeed: "km/h",
-          windDirection: "°"
+          temperature: "°C"
         }
       },
       airQuality: {
         pm10: airQualityData.current?.pm10 || null,
         pm25: airQualityData.current?.pm2_5 || null,
-        nitrogenDioxide: airQualityData.current?.nitrogen_dioxide || null,
-        sulphurDioxide: airQualityData.current?.sulphur_dioxide || null,
         ozone: airQualityData.current?.ozone || null,
         units: {
           all: "µg/m³"

@@ -44,8 +44,6 @@ export const useEnvironmentalData = (): UseEnvironmentalDataReturn => {
 
     return {
       temperature: current.temperature_2m || 0,
-      windSpeed: current.wind_speed_10m || 0,
-      windDirection: current.wind_direction_10m || 0,
     };
   };
 
