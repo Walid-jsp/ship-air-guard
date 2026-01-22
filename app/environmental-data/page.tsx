@@ -10,8 +10,6 @@ interface EnvironmentalRecord {
   latitude: number;
   longitude: number;
   temperature: number | null;
-  windSpeed: number | null;
-  windDirection: number | null;
   pm10: number | null;
   pm25: number | null;
   carbon_dioxide: number | null;
@@ -80,10 +78,7 @@ export default function EnvironmentalDataPage() {
         if (value <= 40) return { level: 'bon', color: 'text-green-500' };
         if (value <= 80) return { level: 'moyen', color: 'text-orange-500' };
         return { level: 'mauvais', color: 'text-red-500' };
-      case 'so2':
-        if (value <= 200) return { level: 'bon', color: 'text-green-500' };
-        if (value <= 350) return { level: 'moyen', color: 'text-orange-500' };
-        return { level: 'critique', color: 'text-red-500' };
+
       default:
         return { level: 'ok', color: 'text-blue-500' };
     }

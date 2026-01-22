@@ -70,8 +70,6 @@ model EnvironmentalData {
   
   // Données météorologiques (pour dispersion des polluants)
   temperature     Float?    // °C - Température à 2m
-  windSpeed       Float?    // km/h - Vitesse du vent à 10m
-  windDirection   Float?    // ° - Direction du vent à 10m
   
   // Données de qualité de l'air
   pm10           Float?     // µg/m³ - Particules fines

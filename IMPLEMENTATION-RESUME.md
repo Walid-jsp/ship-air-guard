@@ -98,7 +98,7 @@ const UPDATE_INTERVAL = 30000; // 30 secondes au lieu de 60
 ```typescript
 // types/environmental.ts  
 export const ENVIRONMENTAL_THRESHOLDS = {
-  sulphurDioxide: { good: 15, moderate: 80, poor: 300 }
+  // see environmental.ts for complete list
 }
 ```
 

@@ -22,17 +22,14 @@ export const getQualityLevel = (
  */
 export const getWeatherLevel = (
   value: number,
-  type: 'temperature' | 'windSpeed'
+  type: 'temperature'
 ): WeatherLevel => {
   if (type === 'temperature') {
     if (value <= ENVIRONMENTAL_THRESHOLDS.temperature.cold) return 'cold';
     if (value <= ENVIRONMENTAL_THRESHOLDS.temperature.comfortable) return 'comfortable';
     return 'hot';
-  } else {
-    if (value <= ENVIRONMENTAL_THRESHOLDS.windSpeed.calm) return 'calm';
-    if (value <= ENVIRONMENTAL_THRESHOLDS.windSpeed.moderate) return 'moderate';
-    return 'strong';
   }
+  return 'comfortable';
 };
 
 /**
@@ -77,8 +74,6 @@ export const getOverallAirQuality = (data: EnvironmentalData): QualityLevel => {
   const levels: QualityLevel[] = [
     getQualityLevel(data.pm10, ENVIRONMENTAL_THRESHOLDS.pm10),
     getQualityLevel(data.pm25, ENVIRONMENTAL_THRESHOLDS.pm25),
-    getQualityLevel(data.nitrogenDioxide, ENVIRONMENTAL_THRESHOLDS.nitrogenDioxide),
-    getQualityLevel(data.sulphurDioxide, ENVIRONMENTAL_THRESHOLDS.sulphurDioxide),
     getQualityLevel(data.ozone, ENVIRONMENTAL_THRESHOLDS.ozone),
   ];
 
@@ -104,19 +99,6 @@ export const getQualityMessage = (level: QualityLevel): string => {
     default:
       return 'Données insuffisantes pour évaluer la qualité';
   }
-};
-
-/**
- * Formate la direction du vent en point cardinal
- */
-export const getWindDirection = (degrees: number): string => {
-  const directions = [
-    'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-    'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'
-  ];
-  
-  const index = Math.round(degrees / 22.5) % 16;
-  return directions[index];
 };
 
 /**
@@ -151,7 +133,7 @@ export const formatDate = (timestamp: string | Date): string => {
  */
 export const isAboveCriticalThreshold = (
   value: number,
-  pollutant: 'pm10' | 'pm25' | 'nitrogenDioxide' | 'sulphurDioxide' | 'ozone'
+  pollutant: 'pm10' | 'pm25' | 'ozone'
 ): boolean => {
   return getQualityLevel(value, ENVIRONMENTAL_THRESHOLDS[pollutant]) === 'poor';
 };

@@ -27,11 +27,11 @@ export default function TestEnvironmentalPage() {
       },
       {
         name: 'API Météo Open-Meteo Raw',
-        url: 'https://api.open-meteo.com/v1/forecast?latitude=43.2951&longitude=5.3744&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=Europe/Paris'
+        url: 'https://api.open-meteo.com/v1/forecast?latitude=43.2951&longitude=5.3744&current=temperature_2m&timezone=Europe/Paris'
       },
       {
         name: 'API Qualité Air Open-Meteo Raw',
-        url: 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=43.2951&longitude=5.3744&current=pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone&timezone=Europe/Paris'
+        url: 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=43.2951&longitude=5.3744&current=pm10,pm2_5,ozone&timezone=Europe/Paris'
       }
     ];
 

@@ -85,7 +85,6 @@ const UPDATE_INTERVAL = 60000; // 1 minute = 60000ms
 // types/environmental.ts
 export const ENVIRONMENTAL_THRESHOLDS = {
   pm10: { good: 20, moderate: 50, poor: 100 },      // µg/m³
-  sulphurDioxide: { good: 20, moderate: 100, poor: 350 }, // ⚠️ Critique
   // ... autres seuils
 };
 ```
@@ -131,8 +130,6 @@ model EnvironmentalData {
   // Qualité de l'air  
   pm10           Float?     // µg/m³
   pm25           Float?     // µg/m³
-  nitrogenDioxide Float?    // µg/m³
-  sulphurDioxide  Float?    // µg/m³ (critique navires)
   ozone          Float?     // µg/m³
   
   dataSource     String    @default("open-meteo")
@@ -150,7 +147,7 @@ Test direct des APIs Open-Meteo
   "success": true,
   "data": {
     "weather": { "temperature": 18.5, "windSpeed": 12.3 },
-    "airQuality": { "pm10": 15.2, "sulphurDioxide": 8.1 }
+    "airQuality": { "pm10": 15.2, "pm25": 8.1 }
   }
 }
 ```
