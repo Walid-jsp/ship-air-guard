@@ -105,7 +105,7 @@ export default function EnvironmentalDataPage() {
               <h1 className="text-3xl font-bold text-white">Données Environnementales Stockées</h1>
             </div>
             <p className="text-slate-400">
-              Historique des données de qualité de l'air et météorologiques du Vieux-Port de Marseille
+              Historique des données de qualité de l'air et météorologiques du navire
             </p>
           </div>
 
