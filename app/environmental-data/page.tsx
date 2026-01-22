@@ -59,6 +59,14 @@ export default function EnvironmentalDataPage() {
 
   useEffect(() => {
     fetchData();
+    
+    // Rafraîchissement automatique toutes les 10 minutes (600000ms)
+    const interval = setInterval(() => {
+      fetchData();
+    }, 600000);
+    
+    // Nettoyage de l'intervalle
+    return () => clearInterval(interval);
   }, [period]);
 
   const formatValue = (value: number | null, unit = '') => {
