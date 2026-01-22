@@ -201,7 +201,6 @@ Les données de plus de 30 jours sont supprimées automatiquement pour optimiser
 - [ ] **Alertes par email/SMS** si seuils dépassés
 - [ ] **Graphiques historiques** avec Chart.js
 - [ ] **Prédictions IA** basées sur l'historique
-- [ ] **Export PDF** des rapports environnementaux
 - [ ] **API webhook** pour systèmes externes
 - [ ] **Géofencing** pour plusieurs zones portuaires
 

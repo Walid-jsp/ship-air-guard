@@ -142,7 +142,6 @@ Le **dioxyde de soufre (SO₂)** est particulièrement mis en avant car c'est l'
 L'architecture modulaire permet d'ajouter facilement :
 - Graphiques Chart.js
 - Alertes par email/SMS  
-- Export PDF des rapports
 - API webhook pour systèmes externes
 - Prédictions IA basées sur l'historique
 

@@ -7,7 +7,6 @@ import {
 } from 'chart.js';
 import { AlertOctagon, CheckCircle, Activity, ThermometerSun, Gauge, Wind, Utensils, Coffee, DoorOpen, AlertTriangle, Ship, Waves } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import ReportPdfButton from '../components/ReportPdfButton';
 import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler);
@@ -385,7 +384,6 @@ export default function Dashboard() {
             <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800 rounded-3xl p-6 shadow-lg h-[450px] flex flex-col">
               <div className="flex items-center justify-between gap-4 mb-6">
                 <h2 className="text-[10px] font-bold uppercase text-slate-500 flex items-center gap-2"><Activity size={14} className="text-blue-500"/> Analyse temporelle : {selectedStation}</h2>
-                <ReportPdfButton zoneName={selectedStation} history={history} />
               </div>
               <div className="flex-1 min-h-0">
                 {history && (
