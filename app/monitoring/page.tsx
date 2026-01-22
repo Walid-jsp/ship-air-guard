@@ -22,17 +22,17 @@ const METRICS: Record<MetricType, MetricConfig> = {
   temperature: {
     label: 'Température',
     unit: '°C',
-    threshold: { warning: 30, danger: 35 }
+    threshold: { warning: 35, danger: 38 }
   },
   co2: {
     label: 'CO₂',
-    unit: 'µg/m³',
-    threshold: { warning: 1000, danger: 1500 }
+    unit: 'ppm',
+    threshold: { warning: 800, danger: 1000 }
   },
   voc: {
     label: 'COV',
-    unit: 'µg/m³',
-    threshold: { warning: 220, danger: 350 }
+    unit: 'ppb',
+    threshold: { warning: 150, danger: 250 }
   }
 };
 
